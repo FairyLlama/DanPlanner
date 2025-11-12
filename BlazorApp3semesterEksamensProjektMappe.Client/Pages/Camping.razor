@@ -1,0 +1,73 @@
+﻿@page "/camping"
+@rendermode InteractiveServer
+@inject ICampingSitesService CampingApi
+@inject IJSRuntime JS
+@using BlazorApp3semesterEksamensProjektMappe.shared.Models
+@using BlazorApp3semesterEksamensProjektMappe.Client.Services
+
+<h3>Campingpladser i Danmark</h3>
+
+<div id="map" style="height:500px; width:100%; border:1px solid #ccc;" class="mb-3"></div>
+
+
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>Navn</th>
+            <th>Region</th>
+            <th>Lat</th>
+            <th>Lon</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var site in sites)
+        {
+            <tr>
+                <td>@site.Name</td>
+                <td>@site.Region</td>
+                <td>@site.Latitude</td>
+                <td>@site.Longitude</td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+@code {
+    private List<CampingSiteDto> sites = new();
+
+    // styring for auto-kald
+    private bool _dataLoaded = false;
+    private bool _jsInitialized = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var allSites = await CampingApi.GetAllAsync();
+        sites = allSites.ToList();
+        Console.WriteLine($"Campingpladser hentet: {sites.Count}");
+
+        // markér at data er klar og trig et render
+        _dataLoaded = true;
+        await InvokeAsync(StateHasChanged);
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        // Vent med JS til data ER klar og vi ikke allerede har kaldt det
+        if (_dataLoaded && !_jsInitialized)
+        {
+            _jsInitialized = true;
+
+            // lille yield for at sikre DOM/hydrering er klar
+            await Task.Yield();
+
+            Console.WriteLine($"Auto: sender {sites.Count} pladser til JS");
+            await JS.InvokeVoidAsync("showCampingSites", sites);
+        }
+    }
+
+    private async Task SendToJs()
+    {
+        Console.WriteLine($"Manuel: sender {sites.Count} pladser til JS");
+        await JS.InvokeVoidAsync("showCampingSites", sites);
+    }
+}
