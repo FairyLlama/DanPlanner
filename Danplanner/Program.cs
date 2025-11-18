@@ -1,0 +1,105 @@
+﻿using Danplanner.Client.Pages;
+using Danplanner.Client.Services;
+using Danplanner.Components;
+using Danplanner.Data;
+using Danplanner.Services;
+using Microsoft.EntityFrameworkCore;
+
+var builder = WebApplication.CreateBuilder(args);
+
+// Blazor setup – Interactive render modes
+builder.Services.AddRazorComponents()
+    .AddInteractiveServerComponents()
+    .AddInteractiveWebAssemblyComponents();
+
+// Controllers (REST API endpoints i serveren)
+builder.Services.AddControllers();
+
+builder.Services.AddDbContext<AppDbContext>(options =>
+    options.UseMySql(builder.Configuration.GetConnectionString("DefaultConnection"),
+    ServerVersion.AutoDetect(builder.Configuration.GetConnectionString("DefaultConnection"))));
+
+
+//builder.Services.AddHttpClient("EF", client =>
+//{
+//    client.BaseAddress = new Uri("https://localhost:7225/");
+//    // eller den port din server kører på
+//});
+
+
+
+// builder.Services.AddHttpClient("EF", client =>
+// {
+//     client.BaseAddress = new Uri(builder.Configuration["EfApiBaseAddress"]!);
+// });
+
+builder.Services.AddHttpClient("Auth", client =>
+{
+    client.BaseAddress = new Uri(builder.Configuration["AuthApiBaseAddress"]!);
+});
+
+// Dine services
+builder.Services.AddHttpClient();
+// builder.Services.AddScoped<Authservice>();
+builder.Services.AddScoped<ICampingSitesService, CampingSitesService>();
+builder.Services.AddScoped<ICampingSiteDataService, CampingSiteDataService>();
+builder.Services.AddScoped<IBookingService, BookingService>();
+builder.Services.AddScoped<IBookingDataService, BookingDataService>();
+builder.Services.AddScoped<IProductService, ProductService>();
+builder.Services.AddScoped<IProductDataService, ProductDataService>();
+builder.Services.AddScoped<IResourceService, ResourceService>();
+builder.Services.AddScoped<IResourceDataService, ResourceDataService>();
+
+
+builder.Services.AddScoped<CampingSiteSeeder>();
+builder.Services.AddScoped<BookingSeeder>();
+
+
+
+// Antiforgery setup
+builder.Services.AddAntiforgery(options =>
+{
+    options.Cookie.Name = "__Host-Antiforgery";
+    options.Cookie.HttpOnly = true;
+    options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
+});
+
+var app = builder.Build();
+
+using (var scope = app.Services.CreateScope())
+{
+    var seeder = scope.ServiceProvider.GetRequiredService<CampingSiteSeeder>();
+    await seeder.SeedAsync();
+}
+
+using (var scope = app.Services.CreateScope())
+{
+    var seeder = scope.ServiceProvider.GetRequiredService<BookingSeeder>();
+    await seeder.SeedAsync();
+}
+
+// Map controllers
+app.MapControllers();
+
+if (app.Environment.IsDevelopment())
+{
+    app.UseWebAssemblyDebugging();
+}
+else
+{
+    app.UseExceptionHandler("/Error", createScopeForErrors: true);
+    app.UseHsts();
+}
+
+app.UseHttpsRedirection();
+app.UseStaticFiles();
+app.UseAntiforgery();
+
+// 👇 Her bruger vi kun MapRazorComponents – ingen _Host, ingen MapBlazorHub
+app.MapRazorComponents<App>()
+    .AddInteractiveServerRenderMode()
+    .AddInteractiveWebAssemblyRenderMode()
+    .AddAdditionalAssemblies(typeof(Danplanner.Client.Pages.Camping).Assembly)
+    .AllowAnonymous();
+
+app.Run();
