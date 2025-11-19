@@ -1,19 +1,15 @@
-﻿using System.Collections.Generic;
+﻿using BlazorApp3semesterEksamensProjektMappe.Data.Entities;
 using Microsoft.EntityFrameworkCore;
-using BlazorApp3semesterEksamensProjektMappe.Data.Entities;
 
 namespace BlazorApp3semesterEksamensProjektMappe.Data
 {
-    public class AppDbContext : DbContext
+    public class MySqlDbContext : DbContext
     {
-        public AppDbContext(DbContextOptions<AppDbContext> options) : base(options) { }
+        public MySqlDbContext(DbContextOptions<MySqlDbContext> options) : base(options) { }
 
         public DbSet<CampingSite> CampingSites { get; set; }
-
         public DbSet<Booking> Bookings { get; set; }
-
         public DbSet<Product> Products { get; set; }
-
         public DbSet<Hut> Huts { get; set; }
     }
 }

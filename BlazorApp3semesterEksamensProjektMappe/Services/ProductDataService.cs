@@ -13,9 +13,11 @@ namespace BlazorApp3semesterEksamensProjektMappe.Services
             await _db.Products.Select(p => new ProductDto
             {
                 Id = p.Id,
-                Name = p.Name,
-                Description = p.Description,
-                BasePrice = p.BasePrice
+                ProductType = p.ProductType,
+                SeasonalPrice = p.SeasonalPrice,
+                ServicePrice = p.ServicePrice,
+                NumberOfGuests = p.NumberOfGuests,
+                AdditionalPurchases = p.AdditionalPurchases
             }).ToListAsync();
 
         public async Task<ProductDto?> GetByIdAsync(int id)
@@ -24,11 +26,12 @@ namespace BlazorApp3semesterEksamensProjektMappe.Services
             return p is null ? null : new ProductDto
             {
                 Id = p.Id,
-                Name = p.Name,
-                Description = p.Description,
-                BasePrice = p.BasePrice
+                ProductType = p.ProductType,
+                SeasonalPrice = p.SeasonalPrice,
+                ServicePrice = p.ServicePrice,
+                NumberOfGuests = p.NumberOfGuests,
+                AdditionalPurchases = p.AdditionalPurchases
             };
         }
     }
-
 }

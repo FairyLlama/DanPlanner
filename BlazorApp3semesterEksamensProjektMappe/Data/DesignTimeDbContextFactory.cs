@@ -5,6 +5,8 @@ namespace BlazorApp3semesterEksamensProjektMappe.Data
 {
     public class DesignTimeDbContextFactory : IDesignTimeDbContextFactory<AppDbContext>
     {
+
+        // This method is called by the EF Core tools to create a DbContext instance at design time
         public AppDbContext CreateDbContext(string[] args)
         {
             var optionsBuilder = new DbContextOptionsBuilder<AppDbContext>();
@@ -13,5 +15,7 @@ namespace BlazorApp3semesterEksamensProjektMappe.Data
 
             return new AppDbContext(optionsBuilder.Options);
         }
+
+        
     }
 }

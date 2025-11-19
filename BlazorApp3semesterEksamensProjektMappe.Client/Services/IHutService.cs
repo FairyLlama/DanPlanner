@@ -2,10 +2,10 @@
 
 namespace BlazorApp3semesterEksamensProjektMappe.Client.Services
 {
-    public interface IResourceService
+    public interface IHutService
     {
-        Task<List<ResourceDto>> GetAllAsync();
-        Task<ResourceDto?> GetByIdAsync(int id);
+        Task<List<HutDto>> GetAllAsync();
+        Task<HutDto?> GetByIdAsync(int id);
     }
 
 }

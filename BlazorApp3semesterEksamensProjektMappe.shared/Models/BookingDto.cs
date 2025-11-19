@@ -10,17 +10,19 @@ namespace BlazorApp3semesterEksamensProjektMappe.shared.Models
     {
         public int Id { get; set; }
 
-        // Samme navngivning som entity
-        public int ResourceId { get; set; }
-        public string ResourceName { get; set; } = "";
-
+        // Fremmednøgler
+        public int UserId { get; set; }
         public int ProductId { get; set; }
-        public string ProductName { get; set; } = "";
+
+        // Evt. detaljer (kun hvis nødvendigt)
+        public UserDto? User { get; set; }
+        public ProductDto? Product { get; set; }
+
+        public bool CancelBooking { get; set; }
+        public bool Rebook { get; set; }
 
         public DateTime StartDate { get; set; }
         public DateTime EndDate { get; set; }
-
-        public decimal TotalPrice { get; set; }
     }
 
 }

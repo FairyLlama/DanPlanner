@@ -1,7 +1,7 @@
 ﻿@page "/booking"
 @using BlazorApp3semesterEksamensProjektMappe.shared.Models
 @using BlazorApp3semesterEksamensProjektMappe.Client.Services
-@inject IResourceService ResourceService
+@inject IHutService HutService
 @inject IProductService ProductService
 @inject IBookingService BookingService
 @rendermode InteractiveServer
@@ -28,18 +28,18 @@
             <option value="0">-- vælg produkt --</option>
             @foreach (var p in _products)
             {
-                <option value="@p.Id">@p.Name (@p.BasePrice kr./nat)</option>
+                <option value="@p.Id">@p.ProductType (@p.SeasonalPrice kr./nat + @p.ServicePrice kr. service)</option>
             }
         </InputSelect>
     </div>
 
     <div>
-        <label>Ressource:</label>
-        <InputSelect TValue="int" @bind-Value="_dto.ResourceId">
-            <option value="0">-- vælg ressource --</option>
-            @foreach (var r in _resources)
+        <label>Hytte:</label>
+        <InputSelect TValue="int" @bind-Value="_dto.UserId">
+            <option value="0">-- vælg hytte --</option>
+            @foreach (var h in _huts)
             {
-                <option value="@r.Id">@r.Name (@r.Type)</option>
+                <option value="@h.Id">Hytte #@h.Id (Kapacitet: @h.MaxCapacity)</option>
             }
         </InputSelect>
     </div>
@@ -48,7 +48,7 @@
 </EditForm>
 
 <p>Valgt produktId: @_dto.ProductId</p>
-<p>Valgt resourceId: @_dto.ResourceId</p>
+<p>Valgt userId (hytte): @_dto.UserId</p>
 
 @if (!string.IsNullOrEmpty(_error))
 {
@@ -58,8 +58,7 @@
 @if (_created is not null)
 {
     <p style="color:green">
-        Booking #@_created.Id — @_created.ResourceName / @_created.ProductName —
-        Total: @_created.TotalPrice kr.
+        Booking #@_created.Id — Produkt: @_created.Product?.ProductType — Periode: @_created.StartDate.ToShortDateString() til @_created.EndDate.ToShortDateString()
     </p>
 }
 
@@ -69,36 +68,33 @@
         StartDate = DateTime.Today,
         EndDate = DateTime.Today.AddDays(1),
         ProductId = 0,
-        ResourceId = 0
+        UserId = 0
     };
 
     private BookingDto? _created;
     private List<ProductDto> _products = new();
-    private List<ResourceDto> _resources = new();
+    private List<HutDto> _huts = new();
     private string _error = string.Empty;
 
     protected override async Task OnInitializedAsync()
     {
         _products = await ProductService.GetAllAsync();
-        _resources = await ResourceService.GetAllAsync();
+        _huts = await HutService.GetAllAsync();
 
-        // Sæt kun defaults hvis værdien er 0
         if (_dto.ProductId == 0 && _products.Any())
             _dto.ProductId = _products.First().Id;
 
-        if (_dto.ResourceId == 0 && _resources.Any())
-            _dto.ResourceId = _resources.First().Id;
+        if (_dto.UserId == 0 && _huts.Any())
+            _dto.UserId = _huts.First().Id;
     }
 
     private async Task HandleBooking()
     {
         _error = string.Empty;
 
-        Console.WriteLine($"[Booking] ProductId={_dto.ProductId}, ResourceId={_dto.ResourceId}");
-
-        if (_dto.ProductId == 0 || _dto.ResourceId == 0)
+        if (_dto.ProductId == 0 || _dto.UserId == 0)
         {
-            _error = "Du skal vælge både produkt og ressource.";
+            _error = "Du skal vælge både produkt og hytte.";
             return;
         }
 

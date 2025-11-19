@@ -7,34 +7,22 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <!-- EF Core 8 -->
     <PackageReference Include="Microsoft.EntityFrameworkCore" Version="8.0.10" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="8.0.10">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
     <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="8.0.10" />
-
-    <!-- MySQL provider til EF Core -->
     <PackageReference Include="Pomelo.EntityFrameworkCore.MySql" Version="8.0.2" />
-
-    <!-- Direkte MySQL connection -->
     <PackageReference Include="MySql.Data" Version="8.4.0" />
-
-    <!-- JWT authentication -->
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="8.0.10" />
   </ItemGroup>
 
+  <!-- Ingen ProjectReference til Shared -->
   <ItemGroup>
-    <!-- Referencer til dine andre projekter -->
-    <ProjectReference Include="..\..\BlazorApp3semesterEksamensProjektMappe.Shared\BlazorApp3semesterEksamensProjektMappe.Shared.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-  <PackageReference Include="Pomelo.EntityFrameworkCore.MySql" Version="8.0.2" />
-</ItemGroup>
-
-  <!-- 🔑 Fix mod NETSDK1152 (dobbelte appsettings) -->
+  <!-- Undgå NETSDK1152 ved duplikerede appsettings -->
   <ItemGroup>
     <Content Update="appsettings*.json" CopyToOutputDirectory="Never" />
   </ItemGroup>

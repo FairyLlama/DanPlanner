@@ -6,12 +6,17 @@ using System.Threading.Tasks;
 
 namespace BlazorApp3semesterEksamensProjektMappe.shared.Models
 {
-    public class ResourceDto
+    public class HutDto
     {
         public int Id { get; set; }
-        public string Name { get; set; } = "";
-        public string Type { get; set; } = "";
-        public string Location { get; set; } = "";
+
+        public int MaxCapacity { get; set; }
+
+        public int ProductId { get; set; }
+
+        public ProductDto? Product { get; set; }
+
+
     }
 
 }

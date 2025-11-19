@@ -17,18 +17,25 @@ namespace BlazorApp3semesterEksamensProjektMappe.Services
         public async Task<List<BookingDto>> GetAllAsync()
         {
             return await _db.Bookings
-                .Include(b => b.Resource)
                 .Include(b => b.Product)
                 .Select(b => new BookingDto
                 {
                     Id = b.Id,
-                    ResourceId = b.ResourceId,
-                    ResourceName = b.Resource.Name,
+                    UserId = b.UserId,
                     ProductId = b.ProductId,
-                    ProductName = b.Product.Name,
+                    Product = new ProductDto
+                    {
+                        Id = b.Product.Id,
+                        ProductType = b.Product.ProductType,
+                        SeasonalPrice = b.Product.SeasonalPrice,
+                        ServicePrice = b.Product.ServicePrice,
+                        NumberOfGuests = b.Product.NumberOfGuests,
+                        AdditionalPurchases = b.Product.AdditionalPurchases
+                    },
+                    CancelBooking = b.CancelBooking,
+                    Rebook = b.Rebook,
                     StartDate = b.StartDate,
-                    EndDate = b.EndDate,
-                    TotalPrice = b.TotalPrice
+                    EndDate = b.EndDate
                 })
                 .ToListAsync();
         }
@@ -36,7 +43,6 @@ namespace BlazorApp3semesterEksamensProjektMappe.Services
         public async Task<BookingDto?> GetByIdAsync(int id)
         {
             var b = await _db.Bookings
-                .Include(x => x.Resource)
                 .Include(x => x.Product)
                 .FirstOrDefaultAsync(x => x.Id == id);
 
@@ -45,13 +51,21 @@ namespace BlazorApp3semesterEksamensProjektMappe.Services
             return new BookingDto
             {
                 Id = b.Id,
-                ResourceId = b.ResourceId,
-                ResourceName = b.Resource.Name,
+                UserId = b.UserId,
                 ProductId = b.ProductId,
-                ProductName = b.Product.Name,
+                Product = new ProductDto
+                {
+                    Id = b.Product.Id,
+                    ProductType = b.Product.ProductType,
+                    SeasonalPrice = b.Product.SeasonalPrice,
+                    ServicePrice = b.Product.ServicePrice,
+                    NumberOfGuests = b.Product.NumberOfGuests,
+                    AdditionalPurchases = b.Product.AdditionalPurchases
+                },
+                CancelBooking = b.CancelBooking,
+                Rebook = b.Rebook,
                 StartDate = b.StartDate,
-                EndDate = b.EndDate,
-                TotalPrice = b.TotalPrice
+                EndDate = b.EndDate
             };
         }
 
@@ -59,19 +73,18 @@ namespace BlazorApp3semesterEksamensProjektMappe.Services
         {
             var product = await _db.Products.FindAsync(dto.ProductId)
                           ?? throw new InvalidOperationException("Produkt findes ikke");
-            var resource = await _db.Resources.FindAsync(dto.ResourceId)
-                          ?? throw new InvalidOperationException("Ressource findes ikke");
 
             var days = (dto.EndDate - dto.StartDate).Days;
             if (days <= 0) throw new InvalidOperationException("Ugyldig periode");
 
             var booking = new Booking
             {
-                ResourceId = dto.ResourceId,
+                UserId = dto.UserId,
                 ProductId = dto.ProductId,
+                CancelBooking = dto.CancelBooking,
+                Rebook = dto.Rebook,
                 StartDate = dto.StartDate,
-                EndDate = dto.EndDate,
-                TotalPrice = product.BasePrice * days
+                EndDate = dto.EndDate
             };
 
             _db.Bookings.Add(booking);
@@ -80,15 +93,22 @@ namespace BlazorApp3semesterEksamensProjektMappe.Services
             return new BookingDto
             {
                 Id = booking.Id,
-                ResourceId = booking.ResourceId,
-                ResourceName = resource.Name,
+                UserId = booking.UserId,
                 ProductId = booking.ProductId,
-                ProductName = product.Name,
+                Product = new ProductDto
+                {
+                    Id = product.Id,
+                    ProductType = product.ProductType,
+                    SeasonalPrice = product.SeasonalPrice,
+                    ServicePrice = product.ServicePrice,
+                    NumberOfGuests = product.NumberOfGuests,
+                    AdditionalPurchases = product.AdditionalPurchases
+                },
+                CancelBooking = booking.CancelBooking,
+                Rebook = booking.Rebook,
                 StartDate = booking.StartDate,
-                EndDate = booking.EndDate,
-                TotalPrice = booking.TotalPrice
+                EndDate = booking.EndDate
             };
         }
     }
-
 }

@@ -5,6 +5,7 @@ using BlazorApp3semesterEksamensProjektMappe.Data;
 using BlazorApp3semesterEksamensProjektMappe.Services;
 using Microsoft.EntityFrameworkCore;
 
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Blazor setup – Interactive render modes
@@ -12,11 +13,22 @@ builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents()
     .AddInteractiveWebAssemblyComponents();
 
+
 // Controllers (REST API endpoints i serveren)
+
 builder.Services.AddControllers();
+
+// Database setup - SQL Server
 
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+
+// Database setup - MySQL
+builder.Services.AddDbContext<MySqlDbContext>(options =>
+    options.UseMySql(
+        builder.Configuration.GetConnectionString("MySqlConnection"),
+        new MySqlServerVersion(new Version(8, 0, 35)) 
+    ));
 
 
 //builder.Services.AddHttpClient("EF", client =>
@@ -39,15 +51,15 @@ builder.Services.AddHttpClient("Auth", client =>
 
 // Dine services
 builder.Services.AddHttpClient();
-builder.Services.AddScoped<Authservice>();
+builder.Services.AddSingleton<Authservice>();
 builder.Services.AddScoped<ICampingSitesService, CampingSitesService>();
 builder.Services.AddScoped<ICampingSiteDataService, CampingSiteDataService>();
 builder.Services.AddScoped<IBookingService, BookingService>();
 builder.Services.AddScoped<IBookingDataService, BookingDataService>();
 builder.Services.AddScoped<IProductService, ProductService>();
 builder.Services.AddScoped<IProductDataService, ProductDataService>();
-builder.Services.AddScoped<IResourceService, ResourceService>();
-builder.Services.AddScoped<IResourceDataService, ResourceDataService>();
+builder.Services.AddScoped<IHutService, HutService>();
+builder.Services.AddScoped<IHutDataService, HutDataService>();
 
 
 builder.Services.AddScoped<CampingSiteSeeder>();
