@@ -1,0 +1,23 @@
+services:
+  gateway:
+    build: ./Gateway
+    ports:
+      - 8080:80
+    depends_on:
+      - danplanner_server
+
+  danplanner_server:
+    build: .
+    ports:
+      - 6000:80
+    environment:
+      - ConnectionStrings__DefaultConnection= #Indsæt database string
+
+
+  auth_service:
+    build: ./AuthenticationService
+    ports:
+      - 6001:80
+    environment:
+      - ConnectionStrings__DefaultConnection= #Indsæt database string
+
