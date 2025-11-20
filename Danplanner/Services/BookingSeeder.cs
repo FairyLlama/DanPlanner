@@ -33,20 +33,20 @@ namespace Danplanner.Services
                     }
                 );
 
-                await _db.SaveChangesAsync(); // Vi skal bruge Product.Id til Hut
+                await _db.SaveChangesAsync(); // Vi skal bruge Product.Id til Cottage
             }
 
-            // Seed Huts
-            if (!await _db.Huts.AnyAsync())
+            // Seed Cottages
+            if (!await _db.Cottages.AnyAsync())
             {
-                var hytteProdukt = await _db.Products
+                var cottageProduct = await _db.Products
                     .FirstOrDefaultAsync(p => p.ProductType.Contains("Hytte"));
 
-                if (hytteProdukt is not null)
+                if (cottageProduct is not null)
                 {
-                    _db.Huts.AddRange(
-                        new Hut { MaxCapacity = 2, ProductId = hytteProdukt.Id },
-                        new Hut { MaxCapacity = 4, ProductId = hytteProdukt.Id }
+                    _db.Cottages.AddRange(
+                        new Cottage { MaxCapacity = 2, ProductId = cottageProduct.Id, Product = cottageProduct },
+                        new Cottage { MaxCapacity = 4, ProductId = cottageProduct.Id, Product = cottageProduct }
                     );
                 }
             }

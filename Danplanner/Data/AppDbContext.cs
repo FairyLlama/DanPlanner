@@ -14,7 +14,7 @@ namespace Danplanner.Data
 
         public DbSet<Product> Products { get; set; }
 
-        public DbSet<Hut> Huts { get; set; }
+        public DbSet<Cottage> Cottages { get; set; }
         public DbSet<Resource> Resources { get; set; }
     }
 }

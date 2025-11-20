@@ -5,15 +5,15 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Danplanner.Services
 {
-    public class HutDataService : IHutDataService
+    public class CottageDataService : ICottageDataService
     {
         private readonly AppDbContext _db;
-        public HutDataService(AppDbContext db) => _db = db;
+        public CottageDataService(AppDbContext db) => _db = db;
 
-        public async Task<List<HutDto>> GetAllAsync() =>
-            await _db.Huts
+        public async Task<List<CottageDto>> GetAllAsync() =>
+            await _db.Cottages
                 .Include(h => h.Product)
-                .Select(h => new HutDto
+                .Select(h => new CottageDto
                 {
                     Id = h.Id,
                     MaxCapacity = h.MaxCapacity,
@@ -30,13 +30,13 @@ namespace Danplanner.Services
                 })
                 .ToListAsync();
 
-        public async Task<HutDto?> GetByIdAsync(int id)
+        public async Task<CottageDto?> GetByIdAsync(int id)
         {
-            var h = await _db.Huts
+            var h = await _db.Cottages
                 .Include(x => x.Product)
                 .FirstOrDefaultAsync(x => x.Id == id);
 
-            return h is null ? null : new HutDto
+            return h is null ? null : new CottageDto
             {
                 Id = h.Id,
                 MaxCapacity = h.MaxCapacity,

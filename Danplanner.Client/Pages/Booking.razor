@@ -2,8 +2,7 @@
 
 @using Danplanner.Shared.Models
 @using Danplanner.Client.Services
-@inject IResourceService ResourceService
-@inject IHutService HutService
+@inject ICottageService CottageService
 @inject IProductService ProductService
 @inject IBookingService BookingService
 @rendermode InteractiveServer
@@ -39,7 +38,7 @@
         <label>Hytte:</label>
         <InputSelect TValue="int" @bind-Value="_dto.UserId">
             <option value="0">-- vælg hytte --</option>
-            @foreach (var h in _huts)
+            @foreach (var h in _Cottages)
             {
                 <option value="@h.Id">Hytte #@h.Id (Kapacitet: @h.MaxCapacity)</option>
             }
@@ -75,19 +74,19 @@
 
     private BookingDto? _created;
     private List<ProductDto> _products = new();
-    private List<HutDto> _huts = new();
+    private List<CottageDto> _Cottages = new();
     private string _error = string.Empty;
 
     protected override async Task OnInitializedAsync()
     {
         _products = await ProductService.GetAllAsync();
-        _huts = await HutService.GetAllAsync();
+        _Cottages = await CottageService.GetAllAsync();
 
         if (_dto.ProductId == 0 && _products.Any())
             _dto.ProductId = _products.First().Id;
 
-        if (_dto.UserId == 0 && _huts.Any())
-            _dto.UserId = _huts.First().Id;
+        if (_dto.UserId == 0 && _Cottages.Any())
+            _dto.UserId = _Cottages.First().Id;
     }
 
     private async Task HandleBooking()

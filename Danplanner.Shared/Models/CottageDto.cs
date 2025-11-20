@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Danplanner.Shared.Models
 {
-    public class ResourceDto
+    public class CottageDto
     {
         public int Id { get; set; }
 
