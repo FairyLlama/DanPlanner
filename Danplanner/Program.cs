@@ -52,8 +52,8 @@ builder.Services.AddScoped<IBookingService, BookingService>();
 builder.Services.AddScoped<IBookingDataService, BookingDataService>();
 builder.Services.AddScoped<IProductService, ProductService>();
 builder.Services.AddScoped<IProductDataService, ProductDataService>();
-builder.Services.AddScoped<IHutService, HutService>();
-builder.Services.AddScoped<IHutDataService, HutDataService>();
+builder.Services.AddScoped<ICottageService, CottageService>();
+builder.Services.AddScoped<ICottageDataService, CottageDataService>();
 
 
 builder.Services.AddScoped<CampingSiteSeeder>();

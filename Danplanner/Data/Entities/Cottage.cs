@@ -1,6 +1,6 @@
 ﻿namespace Danplanner.Data.Entities
 {
-    public class Hut
+    public class Cottage
 
     {
         public int Id { get; set; }
