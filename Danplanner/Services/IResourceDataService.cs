@@ -4,8 +4,8 @@ namespace Danplanner.Services
 {
     public interface IResourceDataService
     {
-        Task<List<HutDto>> GetAllAsync();
-        Task<HutDto?> GetByIdAsync(int id);
+        Task<List<ResourceDto>> GetAllAsync();
+        Task<ResourceDto?> GetByIdAsync(int id);
     }
 
 }
