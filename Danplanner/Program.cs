@@ -33,10 +33,10 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 
 
 
-// builder.Services.AddHttpClient("EF", client =>
-// {
-//     client.BaseAddress = new Uri(builder.Configuration["EfApiBaseAddress"]!);
-// });
+builder.Services.AddHttpClient("EF", client =>
+{
+    client.BaseAddress = new Uri(builder.Configuration["EfApiBaseAddress"]!);
+});
 
 builder.Services.AddHttpClient("Auth", client =>
 {

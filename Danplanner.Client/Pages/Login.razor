@@ -1,5 +1,5 @@
 ﻿@page "/login"
-@* @inject Danplanner.Client.Services.Authservice Auth *@
+@inject Danplanner.Client.Services.Authservice Auth
 @rendermode InteractiveServer
 @using System.ComponentModel.DataAnnotations
 
@@ -49,7 +49,7 @@
     private async Task HandleLogin()
     {
 
-        var token = await Auth.LoginAsync(loginModel.Username, loginModel.Password);
+        var token = await Auth.LoginAsync(loginModel.Email, loginModel.Password);
         message = token is not null ? "Login successful!" : "Login failed";
 
     }

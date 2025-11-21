@@ -84,7 +84,9 @@ namespace Danplanner.Services
                 CancelBooking = dto.CancelBooking,
                 Rebook = dto.Rebook,
                 StartDate = dto.StartDate,
-                EndDate = dto.EndDate
+                EndDate = dto.EndDate,
+                Product = product
+
             };
 
             _db.Bookings.Add(booking);

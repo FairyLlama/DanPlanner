@@ -7,7 +7,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace Danplanner.Migrations
 {
     /// <inheritdoc />
-    public partial class init : Migration
+    public partial class Database : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -38,7 +38,7 @@ namespace Danplanner.Migrations
                 .Annotation("MySql:CharSet", "utf8mb4");
 
             migrationBuilder.CreateTable(
-                name: "Products",
+                name: "GrassFields",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
@@ -47,30 +47,31 @@ namespace Danplanner.Migrations
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     Description = table.Column<string>(type: "longtext", nullable: false)
                         .Annotation("MySql:CharSet", "utf8mb4"),
-                    BasePrice = table.Column<decimal>(type: "decimal(65,30)", nullable: false)
+                    PricePerNight = table.Column<decimal>(type: "decimal(65,30)", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Products", x => x.Id);
+                    table.PrimaryKey("PK_GrassFields", x => x.Id);
                 })
                 .Annotation("MySql:CharSet", "utf8mb4");
 
             migrationBuilder.CreateTable(
-                name: "Resources",
+                name: "Products",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
-                    Name = table.Column<string>(type: "longtext", nullable: false)
+                    ProductType = table.Column<string>(type: "longtext", nullable: false)
                         .Annotation("MySql:CharSet", "utf8mb4"),
-                    Type = table.Column<string>(type: "longtext", nullable: false)
-                        .Annotation("MySql:CharSet", "utf8mb4"),
-                    Location = table.Column<string>(type: "longtext", nullable: false)
+                    SeasonalPrice = table.Column<decimal>(type: "decimal(65,30)", nullable: false),
+                    ServicePrice = table.Column<decimal>(type: "decimal(65,30)", nullable: false),
+                    NumberOfGuests = table.Column<int>(type: "int", nullable: false),
+                    AdditionalPurchases = table.Column<string>(type: "longtext", nullable: false)
                         .Annotation("MySql:CharSet", "utf8mb4")
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Resources", x => x.Id);
+                    table.PrimaryKey("PK_Products", x => x.Id);
                 })
                 .Annotation("MySql:CharSet", "utf8mb4");
 
@@ -80,11 +81,12 @@ namespace Danplanner.Migrations
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
-                    ResourceId = table.Column<int>(type: "int", nullable: false),
+                    UserId = table.Column<int>(type: "int", nullable: false),
                     ProductId = table.Column<int>(type: "int", nullable: false),
+                    CancelBooking = table.Column<bool>(type: "tinyint(1)", nullable: false),
+                    Rebook = table.Column<bool>(type: "tinyint(1)", nullable: false),
                     StartDate = table.Column<DateTime>(type: "datetime(6)", nullable: false),
-                    EndDate = table.Column<DateTime>(type: "datetime(6)", nullable: false),
-                    TotalPrice = table.Column<decimal>(type: "decimal(65,30)", nullable: false)
+                    EndDate = table.Column<DateTime>(type: "datetime(6)", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -95,10 +97,25 @@ namespace Danplanner.Migrations
                         principalTable: "Products",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
+                })
+                .Annotation("MySql:CharSet", "utf8mb4");
+
+            migrationBuilder.CreateTable(
+                name: "Cottages",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
+                    MaxCapacity = table.Column<int>(type: "int", nullable: false),
+                    ProductId = table.Column<int>(type: "int", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Cottages", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_Bookings_Resources_ResourceId",
-                        column: x => x.ResourceId,
-                        principalTable: "Resources",
+                        name: "FK_Cottages_Products_ProductId",
+                        column: x => x.ProductId,
+                        principalTable: "Products",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 })
@@ -110,9 +127,9 @@ namespace Danplanner.Migrations
                 column: "ProductId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Bookings_ResourceId",
-                table: "Bookings",
-                column: "ResourceId");
+                name: "IX_Cottages_ProductId",
+                table: "Cottages",
+                column: "ProductId");
         }
 
         /// <inheritdoc />
@@ -125,10 +142,13 @@ namespace Danplanner.Migrations
                 name: "CampingSites");
 
             migrationBuilder.DropTable(
-                name: "Products");
+                name: "Cottages");
 
             migrationBuilder.DropTable(
-                name: "Resources");
+                name: "GrassFields");
+
+            migrationBuilder.DropTable(
+                name: "Products");
         }
     }
 }
