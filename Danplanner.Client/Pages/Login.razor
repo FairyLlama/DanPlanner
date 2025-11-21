@@ -15,8 +15,8 @@
                         <ValidationSummary class="text-danger" />
 
                         <div class="mb-3">
-                            <label class="form-label">Username</label>
-                            <InputText @bind-Value="loginModel.Username" class="form-control" />
+                            <label class="form-label">Email</label>
+                            <InputText @bind-Value="loginModel.Email" type="email" class="form-control" />
                         </div>
 
                         <div class="mb-3">
@@ -48,13 +48,15 @@
 
     private async Task HandleLogin()
     {
-        @* var token = await Auth.LoginAsync(loginModel.Username, loginModel.Password);
-        message = token is not null ? "Login successful!" : "Login failed"; *@
+
+        var token = await Auth.LoginAsync(loginModel.Username, loginModel.Password);
+        message = token is not null ? "Login successful!" : "Login failed";
+
     }
 
     public class LoginModel
     {
-        [Required] public string Username { get; set; } = string.Empty;
+        [Required, EmailAddress] public string Email { get; set; } = string.Empty;
         [Required] public string Password { get; set; } = string.Empty;
     }
 }

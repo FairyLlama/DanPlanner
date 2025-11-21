@@ -1,7 +1,8 @@
 ﻿@page "/users"
 @using Danplanner.Client.Services;
 @using Danplanner.Shared.Models
-@* @inject Authservice Authservice *@
+@inject Authservice Authservice
+
 
 <h3>All Users</h3>
 
@@ -18,7 +19,7 @@ else
     <ul>
         @foreach (var u in users)
         {
-            <li>@u.Id – @u.Username</li>
+            <li>@u.Id - @u.Email</li>
         }
     </ul>
 }
@@ -28,7 +29,9 @@ else
 
     protected override async Task OnInitializedAsync()
     {
-        @* users = await Authservice.GetUsersAsync(); *@
+
+        users = await Authservice.GetUsersAsync();
     }
 }
+
 

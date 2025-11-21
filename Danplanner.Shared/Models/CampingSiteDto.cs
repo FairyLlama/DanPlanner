@@ -9,6 +9,8 @@ namespace Danplanner.Shared.Models
     public class CampingSiteDto
     {
         public int Id { get; set; }
+
+        public string Address { get; set; } = string.Empty;
         public string Name { get; set; } = string.Empty;
         public string Region { get; set; } = "Danmark";
         public double Latitude { get; set; }

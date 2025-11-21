@@ -1,15 +1,21 @@
-﻿namespace Danplanner.Data.Entities
+using Danplanner.Client.Pages;
+using Danplanner.Shared.Models;
+namespace Danplanner.Data.Entities
+
 {
     public class Booking
     {
         public int Id { get; set; }
-        public int ResourceId { get; set; }
-        public Resource Resource { get; set; } = null!;
+
+        public int UserId { get; set; }
         public int ProductId { get; set; }
-        public Product Product { get; set; } = null!;
+
+        public required Product Product { get; set; } 
+
+        public bool CancelBooking { get; set; }
+        public bool Rebook { get; set; }
+
         public DateTime StartDate { get; set; }
         public DateTime EndDate { get; set; }
-        public decimal TotalPrice { get; set; }
     }
-
 }

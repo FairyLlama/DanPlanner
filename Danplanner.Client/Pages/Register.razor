@@ -1,6 +1,6 @@
 ﻿@page "/register"
 @rendermode InteractiveServer
-@* @inject Danplanner.Client.Services.Authservice Auth *@
+@inject Danplanner.Client.Services.Authservice Auth
 @using System.ComponentModel.DataAnnotations
 
 <div class="container mt-5">
@@ -14,20 +14,45 @@
                         <DataAnnotationsValidator />
                         <ValidationSummary class="text-danger" />
 
-                        <div class="mb-3">
-                            <label class="form-label">Username</label>
-                            <InputText @bind-Value="registerModel.Username" class="form-control" />
-                        </div>
+             
 
                         <div class="mb-3">
                             <label class="form-label">Password</label>
                             <InputText @bind-Value="registerModel.Password" type="password" class="form-control" />
                         </div>
 
+                        <div class="mb-3">
+                            <label class="form-label">Name</label>
+                            <InputText @bind-Value="registerModel.Name" class="form-control" />
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Email</label>
+                            <InputText @bind-Value="registerModel.Email" type="email" class="form-control" />
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Address</label>
+                            <InputText @bind-Value="registerModel.Address" class="form-control" />
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Phone</label>
+                            <InputText @bind-Value="registerModel.Phone" class="form-control" />
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Country</label>
+                            <InputText @bind-Value="registerModel.Country" class="form-control" />
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Language</label>
+                            <InputText @bind-Value="registerModel.Language" class="form-control" />
+                        </div>
+
                         <button type="submit" class="btn btn-primary w-100">Register</button>
                     </EditForm>
-
-                    @* <pre>@System.Text.Json.JsonSerializer.Serialize(registerModel)</pre> *@
 
                     @if (!string.IsNullOrEmpty(message))
                     {
@@ -39,20 +64,37 @@
     </div>
 </div>
 
-
 @code {
     private RegisterModel registerModel = new();
     private string? message;
 
     private async Task HandleRegister()
     {
-        @* var ok = await Auth.RegisterAsync(registerModel.Username, registerModel.Password);
-        message = ok ? "Registration successful" : "Registration failed"; *@
+
+        var ok = await Auth.RegisterAsync(
+            registerModel.Password,
+            registerModel.Name,
+            registerModel.Email,
+            registerModel.Address,
+            registerModel.Phone,
+            registerModel.Country,
+            registerModel.Language
+        );
+
+        message = ok ? "Registration successful" : "Registration failed";
+
     }
 
     public class RegisterModel
     {
-        [Required] public string Username { get; set; } = string.Empty;
+
         [Required] public string Password { get; set; } = string.Empty;
+
+        [Required] public string Name { get; set; } = string.Empty;
+        [Required, EmailAddress] public string Email { get; set; } = string.Empty;
+        public string Address { get; set; } = string.Empty;
+        public string Phone { get; set; } = string.Empty;
+        public string Country { get; set; } = string.Empty;
+        public string Language { get; set; } = string.Empty;
     }
-}
+}   

@@ -15,9 +15,12 @@
 
 <body>
     <Routes />
-    <script src="_framework/blazor.web.js"></script>
-    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
-    <script src="js/map.js"></script>
-</body>
 
+    <!-- Leaflet først -->
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+    <!-- Din map.js derefter -->
+    <script src="js/map.js"></script>
+    <!-- Til sidst Blazor -->
+    <script src="_framework/blazor.web.js"></script>
+</body>
 </html>

@@ -17,6 +17,7 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
+
     <PackageReference Include="Microsoft.Extensions.Http" Version="8.0.10" />
     <ProjectReference Include="..\Danplanner.Client\Danplanner.Client.csproj" />
     <ProjectReference Include="..\Danplanner.Shared\Danplanner.Shared.csproj" />

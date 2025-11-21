@@ -11,27 +11,47 @@ namespace Danplanner.Services
 
         public async Task SeedAsync()
         {
-            // Seed Resources
-            if (!await _db.Resources.AnyAsync())
-            {
-                _db.Resources.AddRange(
-                    new Resource { Name = "Plads 1", Type = "Plads", Location = "A-området" },
-                    new Resource { Name = "Plads 2", Type = "Plads", Location = "A-området" },
-                    new Resource { Name = "Hytte 3", Type = "Hytte", Location = "B-området" }
-                );
-            }
-
             // Seed Products
             if (!await _db.Products.AnyAsync())
             {
                 _db.Products.AddRange(
-                    new Product { Name = "Plads m/strøm", Description = "Standardplads med el", BasePrice = 150m },
-                    new Product { Name = "Hytte standard", Description = "2 pers. hytte", BasePrice = 450m }
+                    new Product
+                    {
+                        ProductType = "Plads m/strøm",
+                        SeasonalPrice = 150m,
+                        ServicePrice = 25m,
+                        NumberOfGuests = 4,
+                        AdditionalPurchases = "El-tilslutning"
+                    },
+                    new Product
+                    {
+                        ProductType = "Hytte standard",
+                        SeasonalPrice = 450m,
+                        ServicePrice = 50m,
+                        NumberOfGuests = 2,
+                        AdditionalPurchases = "Slutrengøring"
+                    }
                 );
+
+                await _db.SaveChangesAsync(); // Vi skal bruge Product.Id til Cottage
+            }
+
+            // Seed Cottages
+            if (!await _db.Cottages.AnyAsync())
+            {
+                var cottageProduct = await _db.Products
+                    .FirstOrDefaultAsync(p => p.ProductType.Contains("Hytte"));
+
+                if (cottageProduct is not null)
+                {
+                    _db.Cottages.AddRange(
+                        new Cottage { MaxCapacity = 2, ProductId = cottageProduct.Id, Product = cottageProduct },
+                        new Cottage { MaxCapacity = 4, ProductId = cottageProduct.Id, Product = cottageProduct }
+                    );
+                }
             }
 
             await _db.SaveChangesAsync();
         }
     }
-
 }

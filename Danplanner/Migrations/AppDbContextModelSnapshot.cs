@@ -30,26 +30,29 @@ namespace Danplanner.Migrations
 
                     MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<bool>("CancelBooking")
+                        .HasColumnType("bit");
+
                     b.Property<DateTime>("EndDate")
                         .HasColumnType("datetime(6)");
 
                     b.Property<int>("ProductId")
                         .HasColumnType("int");
 
-                    b.Property<int>("ResourceId")
-                        .HasColumnType("int");
+                    b.Property<bool>("Rebook")
+                        .HasColumnType("bit");
 
                     b.Property<DateTime>("StartDate")
                         .HasColumnType("datetime(6)");
 
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
                     b.Property<decimal>("TotalPrice")
                         .HasColumnType("decimal(65,30)");
 
                     b.HasKey("Id");
 
                     b.HasIndex("ProductId");
-
-                    b.HasIndex("ResourceId");
 
                     b.ToTable("Bookings");
                 });
@@ -98,6 +101,22 @@ namespace Danplanner.Migrations
 
                     MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<string>("AdditionalPurchases")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("NumberOfGuests")
+                        .HasColumnType("int");
+
+                    b.Property<string>("ProductType")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<decimal>("SeasonalPrice")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal>("ServicePrice")
+                        .HasColumnType("decimal(18,2)");
                     b.Property<decimal>("BasePrice")
                         .HasColumnType("decimal(65,30)");
 
@@ -149,13 +168,11 @@ namespace Danplanner.Migrations
 
                     b.HasOne("Danplanner.Data.Entities.Resource", "Resource")
                         .WithMany()
-                        .HasForeignKey("ResourceId")
+                        .HasForeignKey("ProductId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("Product");
-
-                    b.Navigation("Resource");
                 });
 #pragma warning restore 612, 618
         }
