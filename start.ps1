@@ -1,1 +1,1 @@
-dotnet run --project Gateway -lp https
+dotnet run --project Danplanner -lp https
