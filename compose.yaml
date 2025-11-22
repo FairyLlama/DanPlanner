@@ -11,7 +11,7 @@ services:
     ports:
       - 6000:80
     environment:
-      - ConnectionStrings__DefaultConnection= #Indsæt database string
+      - ConnectionStrings__DefaultConnection=
 
 
   auth_service:
@@ -19,5 +19,4 @@ services:
     ports:
       - 6001:80
     environment:
-      - ConnectionStrings__DefaultConnection= #Indsæt database string
-
+      - ConnectionStrings__DefaultConnection=
