@@ -1,1 +1,1 @@
-dotnet run --project Danplanner -lp https
+dotnet watch --project Danplanner -lp https
