@@ -20,6 +20,3 @@ services:
       - 6001:80
     environment:
       - ConnectionStrings__DefaultConnection=
-
-      
-

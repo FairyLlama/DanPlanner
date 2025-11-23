@@ -484,4 +484,7 @@ $RECYCLE.BIN/
 *.swp
 
 # Docker compose
-# compose.yaml
+compose.yaml
+
+#Appsettings
+*/appsettings*.json

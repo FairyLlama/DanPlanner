@@ -4,10 +4,9 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Danplanner.Services
 {
-    public class BookingSeeder
+    public class BookingSeeder(AppDbContext db)
     {
-        private readonly AppDbContext _db;
-        public BookingSeeder(AppDbContext db) => _db = db;
+        private readonly AppDbContext _db = db;
 
         public async Task SeedAsync()
         {

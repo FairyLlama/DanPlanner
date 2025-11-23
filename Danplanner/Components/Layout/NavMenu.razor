@@ -1,6 +1,6 @@
-﻿<div class="top-row ps-3 navbar navbar-dark">
+<div class="top-row ps-3 navbar navbar-dark">
     <div class="container-fluid">
-        <a class="navbar-brand" href="">Danplanner</a>
+        <img src="img/danplanner-logo.png" style="max-width: 20vh" alt="Danplanner logo">
     </div>
 </div>
 
@@ -8,51 +8,36 @@
 
 <div class="nav-scrollable" onclick="document.querySelector('.navbar-toggler').click()">
     <nav class="flex-column">
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
-                <span class="bi bi-house-door-fill-nav-menu" aria-hidden="true"></span> Home
-            </NavLink>
-        </div>
 
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="counter">
-                <span class="bi bi-plus-square-fill-nav-menu" aria-hidden="true"></span> Counter
-            </NavLink>
-        </div>
 
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="weather">
-                <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> Weather
-            </NavLink>
-        </div>
-
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="camping">
-                <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> Campingpladser
-            </NavLink>
-        </div>
 
         <div class="nav-item px-3">
             <NavLink class="nav-link" href="booking">
-                <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> Booking
+                <span class="bi" style="margin-bottom: 3vh" aria-hidden="true"><BookingIcon/></span> Booking
             </NavLink>
         </div>
 
         <div class="nav-item px-3">
             <NavLink class="nav-link" href="login">
-                <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> Login
+                <span class="bi" style="margin-bottom: 3vh" aria-hidden="true"><LoginIcon/></span> Login
             </NavLink>
         </div>
 
         <div class="nav-item px-3">
             <NavLink class="nav-link" href="register">
-                <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> Register
+                <span class="bi" style="margin-bottom: 3vh" aria-hidden="true"><AddUserIcon/></span> Register
             </NavLink>
         </div>
 
         <div class="nav-item px-3">
             <NavLink class="nav-link" href="users">
-                <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> Users
+                <span class="bi" style="margin-bottom: 3vh" aria-hidden="true"><UserIcon/></span> Users
+            </NavLink>
+        </div>
+
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="camping">
+                <span class="bi" style="margin-bottom: 3vh" aria-hidden="true"><InfoIcon/></span> Information
             </NavLink>
         </div>
     </nav>
