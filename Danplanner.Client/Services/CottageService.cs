@@ -9,10 +9,10 @@ namespace Danplanner.Client.Services
         public CottageService(IHttpClientFactory factory) => _http = factory.CreateClient("EF");
 
         public async Task<List<CottageDto>> GetAllAsync() =>
-            await _http.GetFromJsonAsync<List<CottageDto>>("api/resource") ?? new();
+            await _http.GetFromJsonAsync<List<CottageDto>>("api/cottage") ?? new();
 
         public async Task<CottageDto?> GetByIdAsync(int id) =>
-            await _http.GetFromJsonAsync<CottageDto>($"api/resource/{id}");
+            await _http.GetFromJsonAsync<CottageDto>($"api/cottage/{id}");
     }
 
 }

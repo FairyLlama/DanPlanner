@@ -1,0 +1,29 @@
+@page "/bookingcalendar"
+@using BlazorCalendar
+@using BlazorCalendar.Models
+@using System.Runtime.CompilerServices
+@inject IBookingService BookingService
+<link href="_content/BlazorCalendar/BlazorCalendar.css" rel="stylesheet" />
+
+<CalendarContainer DisplayedView="DisplayedView.Annual" TasksList="Bookings?.ToArray()">
+    <AnnualView />
+</CalendarContainer>
+
+@code{
+    private List<Tasks>? Bookings = new();
+
+    protected async override Task OnInitializedAsync()
+    {
+        var retrieved = await BookingService.GetAllAsync();
+
+        Bookings.AddRange([new Tasks { ID = 1, DateStart = DateTime.Now.AddDays(8), DateEnd = DateTime.Now.AddDays(8), Code = "CP", Color = "#19C319", Caption = "Lorem ipsum dolor sit amet" },
+			new Tasks { ID = 2, DateStart = DateTime.Now.AddDays(50), DateEnd = DateTime.Now.AddDays(52), Code = "DEV", Color = "#FFD800", Caption = "Fusce quis purus eu ante" },
+			new Tasks { ID = 3, DateStart = DateTime.Now.AddDays(62), DateEnd = DateTime.Now.AddDays(62), Code = "DEV", Color = "#FFD800" },
+			new Tasks { ID = 4, DateStart = DateTime.Now.AddDays(62), DateEnd = DateTime.Now.AddDays(62), Code = "FORM", Color = "#FFC3FF", Caption = "Ut sit amet turpis eget" } ,
+			new Tasks { ID = 5, DateStart = DateTime.Now.AddDays(73).AddHours(8), DateEnd = DateTime.Now.AddDays(73).AddHours(9), Code = "MEETING", Color = "#2DD7D7" }]);
+
+        retrieved.ForEach(booking =>
+            Bookings.Add(
+            new Tasks { ID = booking.Id, DateStart = booking.StartDate, DateEnd = booking.EndDate, Code="Reserved", Color = "#aaa" }));
+    }
+}

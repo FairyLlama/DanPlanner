@@ -19,7 +19,7 @@ builder.Services
     });
 
 // Hent config
-var connStr = builder.Configuration.GetConnectionString("MySql")
+var connStr = builder.Configuration.GetConnectionString("DefaultConnection")
               ?? Environment.GetEnvironmentVariable("ConnectionStrings__MySql");
 var jwtKey = builder.Configuration["Jwt:Key"] ?? Environment.GetEnvironmentVariable("Jwt__Key")!;
 var jwtIssuer = builder.Configuration["Jwt:Issuer"] ?? Environment.GetEnvironmentVariable("Jwt__Issuer")!;
@@ -191,7 +191,9 @@ static async Task SeedAdmin(string connStr)
                 var hash = Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(plainPassword)));
 
                 using var insertCmd = conn.CreateCommand();
-                insertCmd.CommandText = "INSERT INTO Users (Email, PasswordHash, Name, Role) VALUES ('admin@example.com', @p, 'Admin User', 'Admin')";
+                insertCmd.CommandText = @"INSERT INTO Users 
+    (Email, PasswordHash, Name, Address, Phone, Country, Language, Role) 
+    VALUES ('admin@example.com', @p, 'Admin User', '', '', '', '', 'Admin')";
                 insertCmd.Parameters.AddWithValue("@p", hash);
                 await insertCmd.ExecuteNonQueryAsync();
 
