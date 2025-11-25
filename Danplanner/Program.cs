@@ -25,13 +25,6 @@ builder.Services.AddDbContext<AppDbContext>(options =>
     ServerVersion.AutoDetect(builder.Configuration.GetConnectionString("DefaultConnection"))));
 
 
-//builder.Services.AddHttpClient("EF", client =>
-//{
-//    client.BaseAddress = new Uri("https://localhost:7225/");
-//    // eller den port din server kører på
-//});
-
-
 
 builder.Services.AddHttpClient("EF", client =>
 {
