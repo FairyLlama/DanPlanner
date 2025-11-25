@@ -4,7 +4,7 @@
 	<h3><b>V&#230;lg den plads du &#248;nsker at booke</b></h3>
 
 	<div class="form-group mb-3">
-		<label class="form-label">V&#230;lg hytteplads</label
+		<label class="form-label">V&#230;lg hytteplads</label>
 		<InputSelect id="CottageNumbers" @bind-Value="SelectedCottageNumber" class="form-select">
 			<option value="0" disabled="disabled" selected>-- V&#230;lg --</option>
 			@foreach (var number in CottageNumbers)
@@ -24,7 +24,13 @@
 			}
 		</InputSelect>
 	</div>
+
+	<h3></b3><b>Herunder ser du de forskellige pladsnumre</b></h3>
+	<img src="../img/campingmap.png">
+
 </body>
+
+
 
 @code {
 
@@ -37,7 +43,7 @@
 
       // 36 gr�spladser
       private IEnumerable<int> FieldNumbers = new List<int>
-	  { 12, 13, 17, 18, 20, 21, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44 };	
+	  { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 17, 18, 20, 21, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44 };	
   
 }
 
