@@ -18,5 +18,10 @@ namespace Danplanner.Data
 
         public DbSet<GrassField> GrassFields { get; set; }
 
+        public DbSet<Addons> Addons { get; set; }
+
+        // Manglende tabeller:
+        public DbSet<BookingAddon> BookingAddons { get; set; }
+        public DbSet<Receipt> Receipts { get; set; }
     }
 }

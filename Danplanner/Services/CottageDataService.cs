@@ -17,15 +17,14 @@ namespace Danplanner.Services
                 {
                     Id = h.Id,
                     MaxCapacity = h.MaxCapacity,
+                    Number = h.Number,
                     ProductId = h.ProductId,
                     Product = new ProductDto
                     {
                         Id = h.Product.Id,
                         ProductType = h.Product.ProductType,
-                        SeasonalPrice = h.Product.SeasonalPrice,
-                        ServicePrice = h.Product.ServicePrice,
-                        NumberOfGuests = h.Product.NumberOfGuests,
-                        AdditionalPurchases = h.Product.AdditionalPurchases
+                        PricePerNight = h.Product.PricePerNight
+                        // MaxGuests er fjernet
                     }
                 })
                 .ToListAsync();
@@ -40,15 +39,14 @@ namespace Danplanner.Services
             {
                 Id = h.Id,
                 MaxCapacity = h.MaxCapacity,
+                Number = h.Number,
                 ProductId = h.ProductId,
                 Product = new ProductDto
                 {
                     Id = h.Product.Id,
                     ProductType = h.Product.ProductType,
-                    SeasonalPrice = h.Product.SeasonalPrice,
-                    ServicePrice = h.Product.ServicePrice,
-                    NumberOfGuests = h.Product.NumberOfGuests,
-                    AdditionalPurchases = h.Product.AdditionalPurchases
+                    PricePerNight = h.Product.PricePerNight
+                    // MaxGuests er fjernet
                 }
             };
         }

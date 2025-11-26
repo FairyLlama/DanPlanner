@@ -14,10 +14,8 @@ namespace Danplanner.Services
             {
                 Id = p.Id,
                 ProductType = p.ProductType,
-                SeasonalPrice = p.SeasonalPrice,
-                ServicePrice = p.ServicePrice,
-                NumberOfGuests = p.NumberOfGuests,
-                AdditionalPurchases = p.AdditionalPurchases
+                PricePerNight = p.PricePerNight
+                // MaxGuests er fjernet
             }).ToListAsync();
 
         public async Task<ProductDto?> GetByIdAsync(int id)
@@ -27,10 +25,8 @@ namespace Danplanner.Services
             {
                 Id = p.Id,
                 ProductType = p.ProductType,
-                SeasonalPrice = p.SeasonalPrice,
-                ServicePrice = p.ServicePrice,
-                NumberOfGuests = p.NumberOfGuests,
-                AdditionalPurchases = p.AdditionalPurchases
+                PricePerNight = p.PricePerNight
+                // MaxGuests er fjernet
             };
         }
     }

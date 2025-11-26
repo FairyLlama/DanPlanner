@@ -10,19 +10,32 @@ namespace Danplanner.Shared.Models
     {
         public int Id { get; set; }
 
-        // Fremmednøgler
-        public int UserId { get; set; }
+        public int CampistId { get; set; }
         public int ProductId { get; set; }
 
-        // Evt. detaljer (kun hvis nødvendigt)
-        public UserDto? User { get; set; }
-        public ProductDto? Product { get; set; }
+        public int? CottageId { get; set; }   // specifik hytte
+        public CottageDto? Cottage { get; set; }
 
-        public bool CancelBooking { get; set; }
-        public bool Rebook { get; set; }
+        public int? GrassFieldId { get; set; }   // specifik græsplads
+        public GrassFieldDto? GrassField { get; set; }
+
+        public ProductDto? Product { get; set; }
 
         public DateTime StartDate { get; set; }
         public DateTime EndDate { get; set; }
+
+        public string Status { get; set; } = "";
+
+        public int NumberOfPeople { get; set; } // antal personer for booking
+
+        public List<AddonDto>? Addons { get; set; }
+
+        public ReceiptDto? Receipt { get; set; }
+
+        public List<BookingAddonDto> BookingAddons { get; set; } = new();
+
+        
+
     }
 
 }

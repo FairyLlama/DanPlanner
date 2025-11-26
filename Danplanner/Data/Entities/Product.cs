@@ -3,16 +3,11 @@
     public class Product
     {
         public int Id { get; set; }
-
-        public string ProductType { get; set; } = "";
-
-        public decimal SeasonalPrice { get; set; }
-
-        public decimal ServicePrice { get; set; }
-
-        public int NumberOfGuests { get; set; }
-
-        public string AdditionalPurchases { get; set; } = "";
+        public string ProductType { get; set; } = ""; // Hytte, Græsplads
+        public decimal PricePerNight { get; set; }
+        
+        public ICollection<Booking> Bookings { get; set; } = new List<Booking>();
     }
+
 
 }

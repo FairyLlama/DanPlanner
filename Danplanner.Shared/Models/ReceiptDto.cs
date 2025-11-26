@@ -6,12 +6,13 @@ using System.Threading.Tasks;
 
 namespace Danplanner.Shared.Models
 {
-    public class ProductDto
+    public class ReceiptDto
     {
         public int Id { get; set; }
-        public string ProductType { get; set; } = "";
-        public decimal PricePerNight { get; set; }
+        public int BookingId { get; set; }
+        public DateTime Date { get; set; }
+        public decimal TotalPrice { get; set; }
+     
 
     }
-
 }
