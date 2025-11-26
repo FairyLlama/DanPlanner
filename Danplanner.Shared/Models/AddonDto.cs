@@ -6,12 +6,15 @@ using System.Threading.Tasks;
 
 namespace Danplanner.Shared.Models
 {
-    public class ProductDto
+    public class AddonDto
     {
         public int Id { get; set; }
-        public string ProductType { get; set; } = "";
-        public decimal PricePerNight { get; set; }
+        public string Name { get; set; } = "";
+        public decimal Price { get; set; }
+
+        public bool IsSelected { get; set; }
+
+
 
     }
-
 }

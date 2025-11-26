@@ -47,6 +47,10 @@ builder.Services.AddScoped<IProductService, ProductService>();
 builder.Services.AddScoped<IProductDataService, ProductDataService>();
 builder.Services.AddScoped<ICottageService, CottageService>();
 builder.Services.AddScoped<ICottageDataService, CottageDataService>();
+builder.Services.AddScoped<IGrassFieldService, GrassFieldService>();
+builder.Services.AddScoped<IGrassFieldDataService, GrassFieldDataService>();
+builder.Services.AddScoped<IAddonService, AddonService>();
+builder.Services.AddScoped<IAddonDataService, AddonDataService>();
 
 
 builder.Services.AddScoped<CampingSiteSeeder>();

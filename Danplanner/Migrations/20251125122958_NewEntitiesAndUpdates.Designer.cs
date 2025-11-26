@@ -4,6 +4,7 @@ using Danplanner.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Danplanner.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20251125122958_NewEntitiesAndUpdates")]
+    partial class NewEntitiesAndUpdates
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -62,9 +65,6 @@ namespace Danplanner.Migrations
                     b.Property<int?>("GrassFieldId")
                         .HasColumnType("int");
 
-                    b.Property<int>("NumberOfPeople")
-                        .HasColumnType("int");
-
                     b.Property<int>("ProductId")
                         .HasColumnType("int");
 
@@ -97,7 +97,7 @@ namespace Danplanner.Migrations
                     b.Property<int>("AddonId")
                         .HasColumnType("int");
 
-                    b.Property<int?>("AddonsId")
+                    b.Property<int>("AddonsId")
                         .HasColumnType("int");
 
                     b.Property<int>("BookingId")
@@ -208,6 +208,9 @@ namespace Danplanner.Migrations
 
                     MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<int>("MaxGuests")
+                        .HasColumnType("int");
+
                     b.Property<decimal>("PricePerNight")
                         .HasColumnType("decimal(65,30)");
 
@@ -272,7 +275,9 @@ namespace Danplanner.Migrations
                 {
                     b.HasOne("Danplanner.Data.Entities.Addons", "Addons")
                         .WithMany("BookingAddons")
-                        .HasForeignKey("AddonsId");
+                        .HasForeignKey("AddonsId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.HasOne("Danplanner.Data.Entities.Booking", "Booking")
                         .WithMany("BookingAddons")
