@@ -1,11 +1,11 @@
-using System.Security.Cryptography;
-using System.Text;
+using AuthenticationService.Models; // DTO'er ligger her
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.IdentityModel.Tokens;
 using MySql.Data.MySqlClient;
-using Microsoft.AspNetCore.Authorization;
+using System.Security.Cryptography;
+using System.Text;
 using System.Text.Json;
-using AuthenticationService.Models; // DTO'er ligger her
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -54,7 +54,7 @@ await SeedAdmin(connStr);
 app.MapPost("/auth/register", async (AuthRequest req) =>
 {
     if (string.IsNullOrWhiteSpace(req.Email) || string.IsNullOrWhiteSpace(req.Password))
-        return Results.Json(new { Error = "Email/password required" }, statusCode: 400);
+        return Results.Json(new { error = "Email/password required" }, statusCode: 400);
 
     using var conn = new MySqlConnection(connStr);
     await conn.OpenAsync();
@@ -76,11 +76,17 @@ app.MapPost("/auth/register", async (AuthRequest req) =>
     try
     {
         await cmd.ExecuteNonQueryAsync();
-        return Results.Json(new { Success = true, Email = req.Email });
+
+        using var idCmd = conn.CreateCommand();
+        idCmd.CommandText = "SELECT LAST_INSERT_ID()";
+        var newId = Convert.ToInt32(await idCmd.ExecuteScalarAsync());
+
+        // Returnér kun ID for minimalt kontrakt
+        return Results.Json(new { id = newId });
     }
     catch (MySqlException ex) when (ex.Number == 1062)
     {
-        return Results.Json(new { Error = "Email already exists" }, statusCode: 409);
+        return Results.Json(new { error = "Email already exists" }, statusCode: 409);
     }
 });
 

@@ -27,6 +27,13 @@ namespace Danplanner.Client.Services
         {
             return await _http.GetFromJsonAsync<BookingDto>($"api/booking/{id}");
         }
+
+
+        public async Task<bool> ConfirmAsync(int bookingId, int userId)
+        {
+            var resp = await _http.PutAsJsonAsync($"api/booking/{bookingId}/confirm", userId);
+            return resp.IsSuccessStatusCode;
+        }
     }
 
 

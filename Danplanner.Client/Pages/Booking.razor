@@ -7,6 +7,7 @@
 @inject IProductService ProductService
 @inject IBookingService BookingService
 @inject IAddonService AddonService
+@inject NavigationManager NavManager
 @rendermode InteractiveServer
 
 <h3>Opret Booking</h3>
@@ -94,13 +95,6 @@
 @if (!string.IsNullOrEmpty(_error))
 {
     <p style="color:red">@_error</p>
-}
-
-@if (_created is not null)
-{
-    <p style="color:green">
-        Booking #@_created.Id — Produkt: @_created.Product?.ProductType — Periode: @_created.StartDate.ToShortDateString() til @_created.EndDate.ToShortDateString() — Antal personer: @_created.NumberOfPeople
-    </p>
 }
 
 @code {
@@ -241,7 +235,15 @@
             })
             .ToList();
 
+        // Gem booking som "Afventer"
+        _dto.Status = "Afventer";
+
         _created = await BookingService.CreateAsync(_dto);
-        StateHasChanged();
+
+        if (_created is not null)
+        {
+            // Redirect til udfyld-oplysninger siden
+            NavManager.NavigateTo($"/booking-user/{_created.Id}");
+        }
     }
 }

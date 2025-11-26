@@ -25,7 +25,7 @@ namespace Danplanner.Services
                 .Select(b => new BookingDto
                 {
                     Id = b.Id,
-                    CampistId = b.CampistId,
+                    UserId = b.UserId,
                     ProductId = b.ProductId,
                     CottageId = b.CottageId,
                     GrassFieldId = b.GrassFieldId,
@@ -53,11 +53,14 @@ namespace Danplanner.Services
                     StartDate = b.StartDate,
                     EndDate = b.EndDate,
                     NumberOfPeople = b.NumberOfPeople,
-                    Addons = b.BookingAddons.Select(bt => new AddonDto
+                    TotalPrice = b.TotalPrice,
+                    BookingAddons = b.BookingAddons.Select(bt => new BookingAddonDto
                     {
-                        Id = bt.Addons.Id,
-                        Name = bt.Addons.Name,
-                        Price = bt.Addons.Price
+                        Id = bt.Id,
+                        BookingId = bt.BookingId,
+                        AddonId = bt.AddonId,
+                        Quantity = bt.Quantity,
+                        Price = bt.Price
                     }).ToList(),
                     Receipt = b.Receipt == null ? null : new ReceiptDto
                     {
@@ -85,7 +88,7 @@ namespace Danplanner.Services
             return new BookingDto
             {
                 Id = b.Id,
-                CampistId = b.CampistId,
+                UserId = b.UserId,
                 ProductId = b.ProductId,
                 CottageId = b.CottageId,
                 GrassFieldId = b.GrassFieldId,
@@ -113,11 +116,14 @@ namespace Danplanner.Services
                 StartDate = b.StartDate,
                 EndDate = b.EndDate,
                 NumberOfPeople = b.NumberOfPeople,
-                Addons = b.BookingAddons.Select(bt => new AddonDto
+                TotalPrice = b.TotalPrice,
+                BookingAddons = b.BookingAddons.Select(bt => new BookingAddonDto
                 {
-                    Id = bt.Addons.Id,
-                    Name = bt.Addons.Name,
-                    Price = bt.Addons.Price
+                    Id = bt.Id,
+                    BookingId = bt.BookingId,
+                    AddonId = bt.AddonId,
+                    Quantity = bt.Quantity,
+                    Price = bt.Price
                 }).ToList(),
                 Receipt = b.Receipt == null ? null : new ReceiptDto
                 {
@@ -139,7 +145,8 @@ namespace Danplanner.Services
 
             var booking = new Booking
             {
-                CampistId = dto.CampistId,
+             
+                UserId = dto.UserId ?? 0, // eller string hvis du bruger Identity
                 ProductId = dto.ProductId,
                 CottageId = dto.CottageId,
                 GrassFieldId = dto.GrassFieldId,
@@ -150,6 +157,9 @@ namespace Danplanner.Services
                 NumberOfPeople = dto.NumberOfPeople
             };
 
+            var basePrice = product.PricePerNight * days;
+            var addonsPrice = 0m;
+
             if (dto.BookingAddons != null)
             {
                 foreach (var ba in dto.BookingAddons)
@@ -157,15 +167,21 @@ namespace Danplanner.Services
                     var addonEntity = await _db.Addons.FindAsync(ba.AddonId)
                                       ?? throw new InvalidOperationException($"Addon {ba.AddonId} findes ikke");
 
+                    var addonTotal = addonEntity.Price * ba.Quantity;
+                    addonsPrice += addonTotal;
+
                     booking.BookingAddons.Add(new BookingAddon
                     {
                         AddonId = ba.AddonId,
                         Quantity = ba.Quantity,
                         Addons = addonEntity,
+                        Price = addonEntity.Price, // snapshot
                         Booking = booking
                     });
                 }
             }
+
+            booking.TotalPrice = basePrice + addonsPrice;
 
             _db.Bookings.Add(booking);
             await _db.SaveChangesAsync();
@@ -173,7 +189,7 @@ namespace Danplanner.Services
             return new BookingDto
             {
                 Id = booking.Id,
-                CampistId = booking.CampistId,
+                UserId = booking.UserId,
                 ProductId = booking.ProductId,
                 CottageId = booking.CottageId,
                 GrassFieldId = booking.GrassFieldId,
@@ -187,14 +203,31 @@ namespace Danplanner.Services
                 StartDate = booking.StartDate,
                 EndDate = booking.EndDate,
                 NumberOfPeople = booking.NumberOfPeople,
+                TotalPrice = booking.TotalPrice,
                 BookingAddons = booking.BookingAddons.Select(ba => new BookingAddonDto
                 {
                     Id = ba.Id,
                     BookingId = ba.BookingId,
                     AddonId = ba.AddonId,
-                    Quantity = ba.Quantity
+                    Quantity = ba.Quantity,
+                    Price = ba.Price
                 }).ToList()
             };
         }
+
+
+        public async Task<bool> ConfirmAsync(int bookingId, int userId)
+        {
+            var booking = await _db.Bookings.FirstOrDefaultAsync(b => b.Id == bookingId);
+            if (booking == null) return false;
+
+            // Opdater booking med bruger og status
+            booking.UserId = userId;
+            booking.Status = "Aktiv";
+
+            await _db.SaveChangesAsync();
+            return true;
+        }
+
     }
 }

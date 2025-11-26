@@ -1,5 +1,6 @@
 using Danplanner.Client.Pages;
 using Danplanner.Shared.Models;
+
 namespace Danplanner.Data.Entities
 
 {
@@ -8,6 +9,8 @@ namespace Danplanner.Data.Entities
         public int Id { get; set; }
 
         public int CampistId { get; set; }
+
+        public int UserId  { get; set; }
 
         // FK til produkt (hytte eller græsplads)
         public int ProductId { get; set; }
@@ -27,6 +30,8 @@ namespace Danplanner.Data.Entities
         public string Status { get; set; } = "Aktiv";
 
         public int NumberOfPeople { get; set; } // antal personer for booking
+
+        public decimal TotalPrice { get; set; } // samlet pris for hele bookingen
 
         public ICollection<BookingAddon> BookingAddons { get; set; } = new List<BookingAddon>();
 
