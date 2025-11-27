@@ -1,16 +1,48 @@
 @page "/bookingcalendar"
+@rendermode InteractiveServer
 @using BlazorCalendar
 @using BlazorCalendar.Models
 @using System.Runtime.CompilerServices
+@using Danplanner.Shared.Models
 @inject IBookingService BookingService
+
 <link href="_content/BlazorCalendar/BlazorCalendar.css" rel="stylesheet" />
 
+<label>
+    Start dato<br/>
+    <InputDate @bind-Value="@startDate" />
+</label>
+<label>
+    Slut dato<br/>
+    <InputDate @bind-Value="@endDate" />
+</label>
+
+
+<button @onclick="CreateBooking">Book tid</button>
+
 <CalendarContainer DisplayedView="DisplayedView.Monthly" TasksList="Bookings?.ToArray()">
-    <MonthlyView />
+    <MonthlyView HighlightToday="true" />
 </CalendarContainer>
 
 @code{
     private List<Tasks>? Bookings = new();
+    private DateTime? startDate;
+    private DateTime? endDate;
+
+    private async Task CreateBooking()
+    {
+        Bookings?.Add(
+            new Tasks { ID = Bookings.Count+1, DateStart = startDate!.Value, DateEnd = endDate!.Value, Color = "#FFD800", Caption = "Reserveret" }
+        );
+        // opret booking i databasen
+        // await BookingService.CreateAsync(new BookingDto{});
+    }
+
+    private void OnClick()
+    {
+        base.StateHasChanged();
+        Console.WriteLine("HANDLED");
+    }
 
     protected async override Task OnInitializedAsync()
     {
@@ -25,5 +57,7 @@
         retrieved.ForEach(booking =>
             Bookings?.Add(
             new Tasks { ID = booking.Id, DateStart = booking.StartDate, DateEnd = booking.EndDate, Code="Reserved", Color = "#aaa" }));
+
+        @* await base.OnInitializedAsync(); *@
     }
 }
