@@ -9,7 +9,7 @@
         public int MaxCapacity { get; set; }
         public int Number { get; set; }
 
-        //public decimal PricePerNight { get; set; }
+        public decimal PricePerNight { get; set; }
 
     }
 

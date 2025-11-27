@@ -32,7 +32,7 @@
             <option value="0">-- vælg produkt --</option>
             @foreach (var p in _products)
             {
-                <option value="@p.Id">@p.ProductType (@p.PricePerNight kr./nat)</option>
+                <option value="@p.Id">@TranslateType(p.ProductType)</option>
             }
         </InputSelect>
     </div>
@@ -42,7 +42,7 @@
         <InputNumber @bind-Value="_dto.NumberOfPeople" />
     </div>
 
-    @if (_selectedProduct?.ProductType.Contains("Hytte") == true)
+    @if (_selectedProduct?.ProductType == ProductType.Cottage)
     {
         <div>
             <label>Hytte:</label>
@@ -50,12 +50,14 @@
                 <option value="@((int?)null)">-- vælg hytte --</option>
                 @foreach (var h in _cottages.Where(h => h.ProductId == _selectedProduct.Id))
                 {
-                    <option value="@h.Id">Hytte #@h.Number (Kapacitet: @h.MaxCapacity)</option>
+                    <option value="@h.Id">
+                        Hytte #@h.Number (Kapacitet: @h.MaxCapacity, Pris: @h.PricePerNight kr./nat)
+                    </option>
                 }
             </InputSelect>
         </div>
     }
-    else if (_selectedProduct?.ProductType.Contains("Græsplads") == true)
+    else if (_selectedProduct?.ProductType == ProductType.GrassField)
     {
         <div>
             <label>Græsplads:</label>
@@ -63,7 +65,9 @@
                 <option value="@((int?)null)">-- vælg græsplads --</option>
                 @foreach (var g in _grassFields.Where(g => g.ProductId == _selectedProduct.Id))
                 {
-                    <option value="@g.Id">Plads #@g.Number (Størrelse: @g.Size)</option>
+                    <option value="@g.Id">
+                        Plads #@g.Number (Størrelse: @g.Size, Pris: @g.PricePerNight kr./nat)
+                    </option>
                 }
             </InputSelect>
         </div>
@@ -129,11 +133,11 @@
             _dto.ProductId = value;
             _selectedProduct = _products.FirstOrDefault(p => p.Id == value);
 
-            if (_selectedProduct?.ProductType.Contains("Hytte") == true)
+            if (_selectedProduct?.ProductType == ProductType.Cottage)
             {
                 _dto.GrassFieldId = null;
             }
-            else if (_selectedProduct?.ProductType.Contains("Græsplads") == true)
+            else if (_selectedProduct?.ProductType == ProductType.GrassField)
             {
                 _dto.CottageId = null;
             }
@@ -192,8 +196,8 @@
             return;
         }
 
-        var isHytte = _selectedProduct?.ProductType.Contains("Hytte") == true;
-        var isGræs = _selectedProduct?.ProductType.Contains("Græsplads") == true;
+        var isHytte = _selectedProduct?.ProductType == ProductType.Cottage;
+        var isGræs = _selectedProduct?.ProductType == ProductType.GrassField;
 
         if (isHytte)
         {
@@ -235,15 +239,21 @@
             })
             .ToList();
 
-        // Gem booking som "Afventer"
         _dto.Status = "Afventer";
 
         _created = await BookingService.CreateAsync(_dto);
 
         if (_created is not null)
         {
-            // Redirect til udfyld-oplysninger siden
             NavManager.NavigateTo($"/booking-user/{_created.Id}");
         }
     }
+
+    // Hjælpemetode til at oversætte enum til dansk
+    private static string TranslateType(ProductType type) => type switch
+    {
+        ProductType.Cottage => "Hytte",
+        ProductType.GrassField => "Græsplads",
+        _ => type.ToString()
+    };
 }

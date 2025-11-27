@@ -11,7 +11,7 @@ services:
     ports:
       - 6000:8080
     environment:
-      - ConnectionStrings__DefaultConnection=server=
+      - ConnectionStrings__DefaultConnection=
 
 
   auth_service:
@@ -19,4 +19,4 @@ services:
     ports:
       - 6001:8080
     environment:
-      - ConnectionStrings__DefaultConnection=server=
+      - ConnectionStrings__DefaultConnection=

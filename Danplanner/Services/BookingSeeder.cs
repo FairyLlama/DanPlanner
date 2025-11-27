@@ -1,5 +1,6 @@
 ﻿using Danplanner.Data;
 using Danplanner.Data.Entities;
+using Danplanner.Shared.Models;
 using Microsoft.EntityFrameworkCore;
 
 namespace Danplanner.Services
@@ -16,26 +17,25 @@ namespace Danplanner.Services
         public async Task SeedAsync()
         {
             // --- Products ---
-            await EnsureProduct("Græsplads m/strøm", 150m);
-            await EnsureProduct("Hytte standard", 450m);
-            await EnsureProduct("Hytte luksus", 950m);
+            await EnsureProduct(ProductType.GrassField);
+            await EnsureProduct(ProductType.Cottage);
 
             await _db.SaveChangesAsync();
 
             // --- Cottages ---
-            var cottageProduct = await _db.Products.FirstOrDefaultAsync(p => p.ProductType.Contains("Hytte"));
+            var cottageProduct = await _db.Products.FirstOrDefaultAsync(p => p.ProductType == ProductType.Cottage);
             if (cottageProduct is not null)
             {
-                await EnsureCottage(cottageProduct, 2, 3);
-                await EnsureCottage(cottageProduct, 4, 6);
+                await EnsureCottage(cottageProduct, 2, 3, 450m);   // standard
+                await EnsureCottage(cottageProduct, 4, 6, 950m);   // luksus
             }
 
             // --- GrassFields ---
-            var grassProduct = await _db.Products.FirstOrDefaultAsync(p => p.ProductType.Contains("Græsplads"));
+            var grassProduct = await _db.Products.FirstOrDefaultAsync(p => p.ProductType == ProductType.GrassField);
             if (grassProduct is not null)
             {
-                await EnsureGrassField(grassProduct, "50m2", 5);
-                await EnsureGrassField(grassProduct, "70m2", 8);
+                await EnsureGrassField(grassProduct, "50m2", 5, 150m);
+                await EnsureGrassField(grassProduct, "70m2", 8, 200m);
             }
 
             // --- Addons ---
@@ -48,24 +48,22 @@ namespace Danplanner.Services
             // --- Bookings (eksempeldata) ---
             if (!await _db.Bookings.AnyAsync())
             {
-                var productHytte = await _db.Products.FirstOrDefaultAsync(p => p.ProductType.Contains("Hytte"));
-                var productGræs = await _db.Products.FirstOrDefaultAsync(p => p.ProductType.Contains("Græsplads"));
                 var cottage = await _db.Cottages.FirstOrDefaultAsync();
                 var grassField = await _db.GrassFields.FirstOrDefaultAsync();
                 var addon = await _db.Addons.FirstOrDefaultAsync();
 
-                if (productHytte is not null && cottage is not null)
+                if (cottage is not null)
                 {
                     var bookingHytte = new Booking
                     {
-                        ProductId = productHytte.Id,
-                        Product = productHytte,
+                        ProductId = cottage.ProductId,
+                        Product = cottage.Product,
                         CottageId = cottage.Id,
                         Cottage = cottage,
                         StartDate = DateTime.Today.AddDays(2),
                         EndDate = DateTime.Today.AddDays(5),
                         Status = "Aktiv",
-                        NumberOfPeople = 2 // eksempel antal personer
+                        NumberOfPeople = 2
                     };
 
                     bookingHytte.BookingAddons = new List<BookingAddon>
@@ -82,18 +80,18 @@ namespace Danplanner.Services
                     _db.Bookings.Add(bookingHytte);
                 }
 
-                if (productGræs is not null && grassField is not null)
+                if (grassField is not null)
                 {
                     var bookingGræs = new Booking
                     {
-                        ProductId = productGræs.Id,
-                        Product = productGræs,
+                        ProductId = grassField.ProductId,
+                        Product = grassField.Product,
                         GrassFieldId = grassField.Id,
                         GrassField = grassField,
                         StartDate = DateTime.Today.AddDays(7),
                         EndDate = DateTime.Today.AddDays(10),
                         Status = "Aktiv",
-                        NumberOfPeople = 3 // eksempel antal personer
+                        NumberOfPeople = 3
                     };
 
                     bookingGræs.BookingAddons = new List<BookingAddon>
@@ -115,24 +113,19 @@ namespace Danplanner.Services
         }
 
         // --- Helper methods ---
-        private async Task EnsureProduct(string type, decimal price)
+        private async Task EnsureProduct(ProductType type)
         {
             var existing = await _db.Products.FirstOrDefaultAsync(p => p.ProductType == type);
             if (existing is null)
             {
                 _db.Products.Add(new Product
                 {
-                    ProductType = type,
-                    PricePerNight = price
+                    ProductType = type
                 });
-            }
-            else
-            {
-                existing.PricePerNight = price;
             }
         }
 
-        private async Task EnsureCottage(Product product, int capacity, int number)
+        private async Task EnsureCottage(Product product, int capacity, int number, decimal price)
         {
             var existing = await _db.Cottages.FirstOrDefaultAsync(c => c.Number == number);
             if (existing is null)
@@ -142,7 +135,8 @@ namespace Danplanner.Services
                     ProductId = product.Id,
                     Product = product,
                     MaxCapacity = capacity,
-                    Number = number
+                    Number = number,
+                    PricePerNight = price
                 });
             }
             else
@@ -150,10 +144,11 @@ namespace Danplanner.Services
                 existing.MaxCapacity = capacity;
                 existing.ProductId = product.Id;
                 existing.Product = product;
+                existing.PricePerNight = price;
             }
         }
 
-        private async Task EnsureGrassField(Product product, string size, int number)
+        private async Task EnsureGrassField(Product product, string size, int number, decimal price)
         {
             var existing = await _db.GrassFields.FirstOrDefaultAsync(g => g.Number == number);
             if (existing is null)
@@ -163,7 +158,8 @@ namespace Danplanner.Services
                     ProductId = product.Id,
                     Product = product,
                     Size = size,
-                    Number = number
+                    Number = number,
+                    PricePerNight = price
                 });
             }
             else
@@ -171,6 +167,7 @@ namespace Danplanner.Services
                 existing.Size = size;
                 existing.ProductId = product.Id;
                 existing.Product = product;
+                existing.PricePerNight = price;
             }
         }
 
