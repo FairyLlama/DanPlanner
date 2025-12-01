@@ -49,3 +49,24 @@ h1:focus {
 .darker-border-checkbox.form-check-input {
     border-color: #929292;
 }
+
+.content-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    margin-top: 3vh;
+}
+
+.right-aligned {
+    justify-self: right;
+}
+
+.right-btn {
+    float:right;
+    margin-right: 5vw;
+    margin-top: 2vh;
+}
+
+.with-margin {
+    margin-left: 0.5rem;
+    margin-right: 0.5rem;
+}

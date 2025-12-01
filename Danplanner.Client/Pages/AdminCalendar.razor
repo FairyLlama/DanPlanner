@@ -1,0 +1,41 @@
+@page "/admin-calendar"
+@rendermode InteractiveServer
+@using BlazorCalendar
+@using BlazorCalendar.Models
+@inject IBookingService BookingService
+
+<link href="_content/BlazorCalendar/BlazorCalendar.css" rel="stylesheet" />
+
+<div class="d-flex flex-row mb-2">
+<input type="date" class="me-2" value="@(today.ToString("yyyy-MM-dd"))" @onchange="@(e => ChangeFirstDate(e.Value.ToString()))" />
+    <button @onclick="@(() => SwitchMonth(-1))" class="btn">@("<")</button>
+    <button @onclick="@(() => SwitchMonth(1))" class="btn me-2">@(">")</button>
+</div>
+<CalendarContainer FirstDate="today" DisplayedView="DisplayedView.Monthly" TasksList="Bookings?.ToArray()">
+    <MonthlyView HighlightToday="true" />
+</CalendarContainer>
+
+@code {
+    private List<Tasks> Bookings = new();
+    private DateTime today = DateTime.Today;
+
+    private void ChangeFirstDate(string value)
+	{
+		if (string.IsNullOrEmpty(value)) return;
+		today = DateTime.Parse(value.ToString());
+	}	
+
+    private void SwitchMonth(int monthsToAdd)
+    {
+        today = today.AddMonths(monthsToAdd);
+    }
+
+    protected async override Task OnInitializedAsync()
+    {
+        var retrieved = await BookingService.GetAllAsync();
+
+        retrieved.ForEach(booking => 
+            Bookings.Add(new Tasks{ ID = booking.Id, DateStart = booking.StartDate, DateEnd = booking.EndDate, Code="Reserved", Color = "#aaa" })
+        );
+    }
+}
