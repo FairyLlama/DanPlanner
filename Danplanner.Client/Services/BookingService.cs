@@ -3,14 +3,9 @@ using Danplanner.Shared.Models;
 
 namespace Danplanner.Client.Services
 {
-    public class BookingService : IBookingService
+    public class BookingService(IHttpClientFactory factory) : IBookingService
     {
-        private readonly HttpClient _http;
-
-        public BookingService(IHttpClientFactory factory)
-        {
-            _http = factory.CreateClient("EF");
-        }
+        private readonly HttpClient _http = factory.CreateClient("EF");
 
         public async Task<BookingDto?> CreateAsync(BookingDto dto)
         {

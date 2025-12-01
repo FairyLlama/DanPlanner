@@ -9,7 +9,21 @@ namespace Danplanner.Controllers
     public class BookingController : ControllerBase
     {
         private readonly IBookingDataService _svc;
-        public BookingController(IBookingDataService svc) => _svc = svc;
+        private readonly IReceiptService _receiptService;
+        private readonly IEmailService _emailService;
+        private readonly ILogger<BookingController> _logger;   // 👈 Logger
+
+        public BookingController(
+            IBookingDataService svc,
+            IReceiptService receiptService,
+            IEmailService emailService,
+            ILogger<BookingController> logger)   // 👈 Logger injiceres
+        {
+            _svc = svc;
+            _receiptService = receiptService;
+            _emailService = emailService;
+            _logger = logger;
+        }
 
         [HttpGet]
         public async Task<ActionResult<List<BookingDto>>> GetAll() =>
@@ -36,14 +50,44 @@ namespace Danplanner.Controllers
             if (booking == null)
                 return NotFound();
 
-            // her kalder vi en ny metode i BookingDataService
             var success = await _svc.ConfirmAsync(id, userId);
             if (!success)
                 return BadRequest("Kunne ikke bekræfte booking");
 
-            return Ok();
+            try
+            {
+                // 🔑 Generér kvittering baseret på BookingDto
+                var pdfBytes = _receiptService.GenerateReceipt(booking);
+
+                var recipient = booking.User?.Email;
+                if (string.IsNullOrWhiteSpace(recipient))
+                {
+                    _logger.LogWarning("Ingen emailadresse på booking {BookingId}", booking.Id);
+                    return BadRequest("Brugerens email mangler. Kan ikke sende kvittering.");
+                }
+
+                _logger.LogInformation("Sender mail til {Recipient}", recipient);
+
+                await _emailService.SendAsync(
+                    recipient,
+                    "Velkommen til Danplanner – din kvittering",
+                    $"Hej {booking.User?.Name ?? "kunde"}! Tak for din booking af {booking.Product?.ProductType.ToString() ?? "produkt"}. Se vedhæftet kvittering.",
+                    pdfBytes,
+                    "kvittering.pdf"
+                );
+
+                _logger.LogInformation("Mail sendt til {Recipient}", recipient);
+                return Ok("Booking bekræftet og kvittering sendt!");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Fejl under mail‑sending for booking {BookingId}", id);
+                return Problem(
+                    detail: ex.Message,
+                    statusCode: StatusCodes.Status500InternalServerError,
+                    title: "Fejl under mail‑sending"
+                );
+            }
         }
-
     }
-
 }

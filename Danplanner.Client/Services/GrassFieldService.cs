@@ -3,15 +3,9 @@ using System.Net.Http.Json;
 
 namespace Danplanner.Client.Services
 {
-    public class GrassFieldService : IGrassFieldService
+    public class GrassFieldService(IHttpClientFactory factory) : IGrassFieldService
     {
-        private readonly HttpClient _http;
-
-        public GrassFieldService(IHttpClientFactory factory)
-        {
-            // Use your existing named client that points to EF API/Gateway
-            _http = factory.CreateClient("EF");
-        }
+        private readonly HttpClient _http = factory.CreateClient("EF");
 
         public async Task<List<GrassFieldDto>> GetAllAsync()
         {

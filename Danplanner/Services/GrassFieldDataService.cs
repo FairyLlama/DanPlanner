@@ -5,10 +5,9 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Danplanner.Services
 {
-    public class GrassFieldDataService : IGrassFieldDataService
+    public class GrassFieldDataService(AppDbContext db) : IGrassFieldDataService
     {
-        private readonly AppDbContext _db;
-        public GrassFieldDataService(AppDbContext db) => _db = db;
+        private readonly AppDbContext _db = db;
 
         public async Task<List<GrassFieldDto>> GetAllAsync() =>
             await _db.GrassFields

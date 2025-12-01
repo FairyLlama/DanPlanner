@@ -5,14 +5,9 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Danplanner.Services
 {
-    public class AddonDataService : IAddonDataService
+    public class AddonDataService(AppDbContext db) : IAddonDataService
     {
-        private readonly AppDbContext _db;
-
-        public AddonDataService(AppDbContext db)
-        {
-            _db = db;
-        }
+        private readonly AppDbContext _db = db;
 
         public async Task<List<AddonDto>> GetAllAsync()
         {

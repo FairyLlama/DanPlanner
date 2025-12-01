@@ -5,8 +5,19 @@ using Danplanner.Data;
 using Danplanner.Services;
 using Microsoft.EntityFrameworkCore;
 using System.Text.Json.Serialization;
+using QuestPDF.Infrastructure;
+
 
 var builder = WebApplication.CreateBuilder(args);
+
+QuestPDF.Settings.License = LicenseType.Community;
+
+
+// 👇 Tilføj logging
+builder.Logging.ClearProviders();
+builder.Logging.AddConsole();
+
+
 
 // Blazor setup – Interactive render modes
 builder.Services.AddRazorComponents()
@@ -59,6 +70,9 @@ builder.Services.AddScoped<IGrassFieldService, GrassFieldService>();
 builder.Services.AddScoped<IGrassFieldDataService, GrassFieldDataService>();
 builder.Services.AddScoped<IAddonService, AddonService>();
 builder.Services.AddScoped<IAddonDataService, AddonDataService>();
+builder.Services.AddScoped<IEmailService, EmailService>();
+builder.Services.AddScoped<IReceiptService, ReceiptService>();
+
 
 
 builder.Services.AddScoped<CampingSiteSeeder>();
@@ -91,12 +105,16 @@ app.MapControllers();
 if (app.Environment.IsDevelopment())
 {
     app.UseWebAssemblyDebugging();
+    app.UseDeveloperExceptionPage();
 }
 else
 {
     app.UseExceptionHandler("/Error", createScopeForErrors: true);
     app.UseHsts();
 }
+
+
+
 
 app.UseHttpsRedirection();
 app.UseStaticFiles();

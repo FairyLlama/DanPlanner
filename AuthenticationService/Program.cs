@@ -7,6 +7,7 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
 
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Global camelCase JSON
@@ -19,8 +20,8 @@ builder.Services
     });
 
 // Hent config
-var connStr = builder.Configuration.GetConnectionString("DefaultConnection")
-              ?? Environment.GetEnvironmentVariable("ConnectionStrings__MySql");
+var connStr = builder.Configuration.GetConnectionString("DefaultConnection");
+              //?? Environment.GetEnvironmentVariable("ConnectionStrings__MySql");
 var jwtKey = builder.Configuration["Jwt:Key"] ?? Environment.GetEnvironmentVariable("Jwt__Key")!;
 var jwtIssuer = builder.Configuration["Jwt:Issuer"] ?? Environment.GetEnvironmentVariable("Jwt__Issuer")!;
 var jwtAudience = builder.Configuration["Jwt:Audience"] ?? Environment.GetEnvironmentVariable("Jwt__Audience")!;

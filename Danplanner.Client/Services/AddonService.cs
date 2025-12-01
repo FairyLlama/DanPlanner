@@ -3,14 +3,9 @@ using System.Net.Http.Json;
 
 namespace Danplanner.Client.Services
 {
-    public class AddonService : IAddonService
+    public class AddonService(IHttpClientFactory factory) : IAddonService
     {
-        private readonly HttpClient _http;
-
-        public AddonService(IHttpClientFactory factory)
-        {
-            _http = factory.CreateClient("EF");
-        }
+        private readonly HttpClient _http = factory.CreateClient("EF");
 
         public async Task<List<AddonDto>> GetAllAsync()
         {
