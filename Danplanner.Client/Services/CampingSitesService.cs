@@ -3,14 +3,9 @@ using Danplanner.Shared.Models;
 
 namespace Danplanner.Client.Services
 {
-    public class CampingSitesService : ICampingSitesService
+    public class CampingSitesService(IHttpClientFactory factory) : ICampingSitesService
     {
-        private readonly HttpClient _http;
-        public CampingSitesService(IHttpClientFactory factory)
-        {
-            // Use your existing named client that points to EF API/Gateway
-            _http = factory.CreateClient("EF");
-        }
+        private readonly HttpClient _http = factory.CreateClient("EF");
 
         public async Task<List<CampingSiteDto>> GetAllAsync() =>
             await _http.GetFromJsonAsync<List<CampingSiteDto>>("api/campingsites") ?? new();

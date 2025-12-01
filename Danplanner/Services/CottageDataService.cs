@@ -5,10 +5,9 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Danplanner.Services
 {
-    public class CottageDataService : ICottageDataService
+    public class CottageDataService(AppDbContext db) : ICottageDataService
     {
-        private readonly AppDbContext _db;
-        public CottageDataService(AppDbContext db) => _db = db;
+        private readonly AppDbContext _db = db;
 
         public async Task<List<CottageDto>> GetAllAsync() =>
             await _db.Cottages

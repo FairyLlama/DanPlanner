@@ -78,6 +78,14 @@ else
         </p>
 
         <button @onclick="ConfirmBooking">Bekræft</button>
+
+        <!-- 🔍 Debug info -->
+        @if (!string.IsNullOrEmpty(_debugMessage))
+        {
+            <div style="color:red; margin-top:10px;">
+                Debug: @_debugMessage
+            </div>
+        }
     }
 }
 
@@ -89,37 +97,77 @@ else
     private bool _userSaved = false;
     private bool _confirmed = false;
     private int _userId;
+    private string _debugMessage = "";
 
     protected override async Task OnInitializedAsync()
     {
-        _booking = await BookingService.GetByIdAsync(bookingId);
+        try
+        {
+            _booking = await BookingService.GetByIdAsync(bookingId);
+            _debugMessage = $"Booking hentet med ID {_booking?.Id}";
+        }
+        catch (Exception ex)
+        {
+            _debugMessage = $"Fejl ved hentning: {ex.Message}";
+        }
     }
 
     private async Task HandleUserSubmit()
     {
-        var userId = await AuthService.RegisterAsync(
-            _user.Password,
-            _user.Name,
-            _user.Email,
-            _user.Address,
-            _user.Phone,
-            _user.Country,
-            _user.Language
-        );
-
-        if (userId is int id && id > 0)
+        try
         {
-            _userId = id;
-            _userSaved = true;
+            var userId = await AuthService.RegisterAsync(
+                _user.Password,
+                _user.Name,
+                _user.Email,
+                _user.Address,
+                _user.Phone,
+                _user.Country,
+                _user.Language
+            );
+
+            if (userId is int id && id > 0)
+            {
+                _userId = id;
+                _userSaved = true;
+                _debugMessage = $"Bruger gemt med ID {_userId}";
+            }
+            else
+            {
+                _debugMessage = "Bruger kunne ikke gemmes.";
+            }
+        }
+        catch (Exception ex)
+        {
+            _debugMessage = $"Fejl ved brugerregistrering: {ex.Message}";
         }
     }
 
     private async Task ConfirmBooking()
     {
-        if (_booking is null || _userId <= 0) return;
+        if (_booking is null || _userId <= 0)
+        {
+            _debugMessage = "Booking eller UserId mangler.";
+            return;
+        }
 
-        var success = await BookingService.ConfirmAsync(_booking.Id, _userId);
-        if (success)
-            _confirmed = true;
+        try
+        {
+            var success = await BookingService.ConfirmAsync(_booking.Id, _userId);
+            if (success)
+            {
+                _confirmed = true;
+                _debugMessage = "Booking bekræftet og mail sendt.";
+            }
+            else
+            {
+                _debugMessage = "Booking kunne ikke bekræftes (server returnerede false).";
+            }
+        }
+        catch (Exception ex)
+        {
+            // 👀 Her fanger vi fejl fra maildelen eller kvittering
+            _debugMessage = $"Fejl ved bekræftelse: {ex.Message}";
+        }
     }
 }

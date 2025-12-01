@@ -3,10 +3,9 @@ using System.Net.Http.Json;
 
 namespace Danplanner.Client.Services
 {
-    public class CottageService : ICottageService
+    public class CottageService(IHttpClientFactory factory) : ICottageService
     {
-        private readonly HttpClient _http;
-        public CottageService(IHttpClientFactory factory) => _http = factory.CreateClient("EF");
+        private readonly HttpClient _http = factory.CreateClient("EF");
 
         public async Task<List<CottageDto>> GetAllAsync() =>
             await _http.GetFromJsonAsync<List<CottageDto>>("api/cottage") ?? new();

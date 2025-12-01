@@ -5,14 +5,9 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Danplanner.Services
 {
-    public class BookingDataService : IBookingDataService
+    public class BookingDataService(AppDbContext db) : IBookingDataService
     {
-        private readonly AppDbContext _db;
-
-        public BookingDataService(AppDbContext db)
-        {
-            _db = db;
-        }
+        private readonly AppDbContext _db = db;
 
         public async Task<List<BookingDto>> GetAllAsync()
         {

@@ -7,20 +7,15 @@ using System.Text.Json.Serialization;
 
 namespace Danplanner.Client.Services
 {
-    public class Authservice
+    public class Authservice(IHttpClientFactory factory)
     {
-        private readonly HttpClient _http;
+        private readonly HttpClient _http = factory.CreateClient("Auth");
         private readonly JsonSerializerOptions _jsonOptions = new()
         {
             PropertyNamingPolicy = JsonNamingPolicy.CamelCase
         };
 
         private string? _token;
-
-        public Authservice(IHttpClientFactory factory)
-        {
-            _http = factory.CreateClient("Auth");
-        }
 
         // ---------- REGISTER (returnerer userId) ----------
         public async Task<int?> RegisterAsync(
