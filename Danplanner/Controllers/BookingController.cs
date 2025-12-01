@@ -28,6 +28,22 @@ namespace Danplanner.Controllers
             var created = await _svc.CreateAsync(dto);
             return CreatedAtAction(nameof(GetById), new { id = created.Id }, created);
         }
+
+        [HttpPut("{id}/confirm")]
+        public async Task<IActionResult> Confirm(int id, [FromBody] int userId)
+        {
+            var booking = await _svc.GetByIdAsync(id);
+            if (booking == null)
+                return NotFound();
+
+            // her kalder vi en ny metode i BookingDataService
+            var success = await _svc.ConfirmAsync(id, userId);
+            if (!success)
+                return BadRequest("Kunne ikke bekræfte booking");
+
+            return Ok();
+        }
+
     }
 
 }

@@ -10,14 +10,16 @@ namespace Danplanner.Shared.Models
     {
         public int Id { get; set; }
 
-        public int CampistId { get; set; }
-        public int ProductId { get; set; }
+        public int? UserId { get; set; } 
+        public UserDto? User { get; set; } // valgfrit, til visning
 
         public int? CottageId { get; set; }   // specifik hytte
         public CottageDto? Cottage { get; set; }
 
         public int? GrassFieldId { get; set; }   // specifik græsplads
         public GrassFieldDto? GrassField { get; set; }
+
+        public int ProductId { get; set; }
 
         public ProductDto? Product { get; set; }
 
@@ -31,6 +33,8 @@ namespace Danplanner.Shared.Models
         public List<AddonDto>? Addons { get; set; }
 
         public ReceiptDto? Receipt { get; set; }
+
+        public decimal TotalPrice { get; set; } // samlet pris for hele bookingen
 
         public List<BookingAddonDto> BookingAddons { get; set; } = new();
 

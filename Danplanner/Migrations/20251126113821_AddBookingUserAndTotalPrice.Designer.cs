@@ -4,6 +4,7 @@ using Danplanner.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Danplanner.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20251126113821_AddBookingUserAndTotalPrice")]
+    partial class AddBookingUserAndTotalPrice
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -174,9 +177,6 @@ namespace Danplanner.Migrations
                     b.Property<int>("Number")
                         .HasColumnType("int");
 
-                    b.Property<decimal>("PricePerNight")
-                        .HasColumnType("decimal(65,30)");
-
                     b.Property<int>("ProductId")
                         .HasColumnType("int");
 
@@ -197,9 +197,6 @@ namespace Danplanner.Migrations
 
                     b.Property<int>("Number")
                         .HasColumnType("int");
-
-                    b.Property<decimal>("PricePerNight")
-                        .HasColumnType("decimal(65,30)");
 
                     b.Property<int>("ProductId")
                         .HasColumnType("int");
@@ -222,6 +219,9 @@ namespace Danplanner.Migrations
                         .HasColumnType("int");
 
                     MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<decimal>("PricePerNight")
+                        .HasColumnType("decimal(65,30)");
 
                     b.Property<string>("ProductType")
                         .IsRequired()

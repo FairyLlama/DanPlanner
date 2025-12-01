@@ -23,5 +23,19 @@ namespace Danplanner.Data
         // Manglende tabeller:
         public DbSet<BookingAddon> BookingAddons { get; set; }
         public DbSet<Receipt> Receipts { get; set; }
+
+
+
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            base.OnModelCreating(modelBuilder);
+
+            modelBuilder.Entity<Product>()
+                .Property(p => p.ProductType)
+                .HasConversion<string>(); // gemmer enum-værdier som tekst i DB
+        }
     }
+
+
+
 }

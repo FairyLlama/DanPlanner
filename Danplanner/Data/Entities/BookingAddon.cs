@@ -8,7 +8,8 @@
         public int AddonId { get; set; }
         public int Quantity { get; set; }
 
-        public Booking? Booking { get; set; }
+        public decimal Price { get; set; } // pris pr. enhed på tidspunktet for booking
+        public Booking? Booking { get; set; } 
         public Addons? Addons { get; set; }
 
     }

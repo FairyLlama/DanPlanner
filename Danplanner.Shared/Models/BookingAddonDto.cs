@@ -14,8 +14,11 @@ namespace Danplanner.Shared.Models
         public int AddonId { get; set; }
         public int Quantity { get; set; }
 
+        public decimal Price { get; set; } // pris pr. enhed på tidspunktet for booking
+
         // Tilknyttet addon (valgfrit, men praktisk til UI)
         public AddonDto? Addon { get; set; }
+
     }
 
 }

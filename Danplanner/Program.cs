@@ -4,7 +4,7 @@ using Danplanner.Components;
 using Danplanner.Data;
 using Danplanner.Services;
 using Microsoft.EntityFrameworkCore;
-
+using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -14,9 +14,17 @@ builder.Services.AddRazorComponents()
     .AddInteractiveWebAssemblyComponents();
 
 
-// Controllers (REST API endpoints i serveren)
-
+// Her sørger vi for at enums sendes/læses som tekst i JSON
 builder.Services.AddControllers();
+    //.AddJsonOptions(o =>
+    //{
+    //    o.JsonSerializerOptions.PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase;
+    //    o.JsonSerializerOptions.DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull;
+
+    //    // 👇 Vigtigt: sørger for at enums sendes/læses som tekst
+    //    o.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
+    //});
+
 
 // Database setup - SQL Server
 

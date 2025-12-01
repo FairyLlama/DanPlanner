@@ -7,7 +7,9 @@
         public int ProductId { get; set; }
         public required Product Product { get; set; }
         public int MaxCapacity { get; set; }
-        public int Number { get; set; } 
+        public int Number { get; set; }
+
+        public decimal PricePerNight { get; set; }
 
     }
 

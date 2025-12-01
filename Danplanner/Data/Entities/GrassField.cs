@@ -10,5 +10,7 @@
         public string Size { get; set; } = "";
         public int Number { get; set; }
 
+        public decimal PricePerNight { get; set; }
+
     }
 }

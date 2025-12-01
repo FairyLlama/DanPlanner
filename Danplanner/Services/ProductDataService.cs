@@ -13,9 +13,7 @@ namespace Danplanner.Services
             await _db.Products.Select(p => new ProductDto
             {
                 Id = p.Id,
-                ProductType = p.ProductType,
-                PricePerNight = p.PricePerNight
-                // MaxGuests er fjernet
+                ProductType = (ProductType)p.ProductType
             }).ToListAsync();
 
         public async Task<ProductDto?> GetByIdAsync(int id)
@@ -24,9 +22,7 @@ namespace Danplanner.Services
             return p is null ? null : new ProductDto
             {
                 Id = p.Id,
-                ProductType = p.ProductType,
-                PricePerNight = p.PricePerNight
-                // MaxGuests er fjernet
+                ProductType = (ProductType)p.ProductType
             };
         }
     }

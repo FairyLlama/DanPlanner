@@ -25,39 +25,43 @@ namespace Danplanner.Services
                 .Select(b => new BookingDto
                 {
                     Id = b.Id,
-                    CampistId = b.CampistId,
+                    UserId = b.UserId,
                     ProductId = b.ProductId,
                     CottageId = b.CottageId,
                     GrassFieldId = b.GrassFieldId,
                     Product = new ProductDto
                     {
                         Id = b.Product.Id,
-                        ProductType = b.Product.ProductType,
-                        PricePerNight = b.Product.PricePerNight
+                        ProductType = (ProductType)b.Product.ProductType
                     },
                     Cottage = b.Cottage == null ? null : new CottageDto
                     {
                         Id = b.Cottage.Id,
                         ProductId = b.Cottage.ProductId,
                         MaxCapacity = b.Cottage.MaxCapacity,
-                        Number = b.Cottage.Number
+                        Number = b.Cottage.Number,
+                        PricePerNight = b.Cottage.PricePerNight
                     },
                     GrassField = b.GrassField == null ? null : new GrassFieldDto
                     {
                         Id = b.GrassField.Id,
                         ProductId = b.GrassField.ProductId,
                         Size = b.GrassField.Size,
-                        Number = b.GrassField.Number
+                        Number = b.GrassField.Number,
+                        PricePerNight = b.GrassField.PricePerNight
                     },
                     Status = b.Status,
                     StartDate = b.StartDate,
                     EndDate = b.EndDate,
                     NumberOfPeople = b.NumberOfPeople,
-                    Addons = b.BookingAddons.Select(bt => new AddonDto
+                    TotalPrice = b.TotalPrice,
+                    BookingAddons = b.BookingAddons.Select(bt => new BookingAddonDto
                     {
-                        Id = bt.Addons.Id,
-                        Name = bt.Addons.Name,
-                        Price = bt.Addons.Price
+                        Id = bt.Id,
+                        BookingId = bt.BookingId,
+                        AddonId = bt.AddonId,
+                        Quantity = bt.Quantity,
+                        Price = bt.Price
                     }).ToList(),
                     Receipt = b.Receipt == null ? null : new ReceiptDto
                     {
@@ -85,39 +89,43 @@ namespace Danplanner.Services
             return new BookingDto
             {
                 Id = b.Id,
-                CampistId = b.CampistId,
+                UserId = b.UserId,
                 ProductId = b.ProductId,
                 CottageId = b.CottageId,
                 GrassFieldId = b.GrassFieldId,
                 Product = new ProductDto
                 {
                     Id = b.Product.Id,
-                    ProductType = b.Product.ProductType,
-                    PricePerNight = b.Product.PricePerNight
+                    ProductType = (ProductType)b.Product.ProductType
                 },
                 Cottage = b.Cottage == null ? null : new CottageDto
                 {
                     Id = b.Cottage.Id,
                     ProductId = b.Cottage.ProductId,
                     MaxCapacity = b.Cottage.MaxCapacity,
-                    Number = b.Cottage.Number
+                    Number = b.Cottage.Number,
+                    PricePerNight = b.Cottage.PricePerNight
                 },
                 GrassField = b.GrassField == null ? null : new GrassFieldDto
                 {
                     Id = b.GrassField.Id,
                     ProductId = b.GrassField.ProductId,
                     Size = b.GrassField.Size,
-                    Number = b.GrassField.Number
+                    Number = b.GrassField.Number,
+                    PricePerNight = b.GrassField.PricePerNight
                 },
                 Status = b.Status,
                 StartDate = b.StartDate,
                 EndDate = b.EndDate,
                 NumberOfPeople = b.NumberOfPeople,
-                Addons = b.BookingAddons.Select(bt => new AddonDto
+                TotalPrice = b.TotalPrice,
+                BookingAddons = b.BookingAddons.Select(bt => new BookingAddonDto
                 {
-                    Id = bt.Addons.Id,
-                    Name = bt.Addons.Name,
-                    Price = bt.Addons.Price
+                    Id = bt.Id,
+                    BookingId = bt.BookingId,
+                    AddonId = bt.AddonId,
+                    Quantity = bt.Quantity,
+                    Price = bt.Price
                 }).ToList(),
                 Receipt = b.Receipt == null ? null : new ReceiptDto
                 {
@@ -139,7 +147,7 @@ namespace Danplanner.Services
 
             var booking = new Booking
             {
-                CampistId = dto.CampistId,
+                UserId = dto.UserId ?? 0,
                 ProductId = dto.ProductId,
                 CottageId = dto.CottageId,
                 GrassFieldId = dto.GrassFieldId,
@@ -147,25 +155,47 @@ namespace Danplanner.Services
                 StartDate = dto.StartDate,
                 EndDate = dto.EndDate,
                 Product = product,
-                NumberOfPeople = dto.NumberOfPeople
+                NumberOfPeople = dto.NumberOfPeople,
+                BookingAddons = new List<BookingAddon>()   // 👈 sikrer at listen er klar
             };
 
-            if (dto.BookingAddons != null)
+            decimal basePrice = 0m;
+            if (dto.CottageId.HasValue)
+            {
+                var cottage = await _db.Cottages.FindAsync(dto.CottageId.Value)
+                              ?? throw new InvalidOperationException("Cottage findes ikke");
+                basePrice = cottage.PricePerNight * days;
+            }
+            else if (dto.GrassFieldId.HasValue)
+            {
+                var grass = await _db.GrassFields.FindAsync(dto.GrassFieldId.Value)
+                             ?? throw new InvalidOperationException("GrassField findes ikke");
+                basePrice = grass.PricePerNight * days;
+            }
+
+            var addonsPrice = 0m;
+            if (dto.BookingAddons != null && dto.BookingAddons.Any())
             {
                 foreach (var ba in dto.BookingAddons)
                 {
                     var addonEntity = await _db.Addons.FindAsync(ba.AddonId)
                                       ?? throw new InvalidOperationException($"Addon {ba.AddonId} findes ikke");
 
+                    var addonTotal = addonEntity.Price * ba.Quantity;
+                    addonsPrice += addonTotal;
+
                     booking.BookingAddons.Add(new BookingAddon
                     {
+                        BookingId = booking.Id,   // 👈 sæt FK eksplicit
                         AddonId = ba.AddonId,
                         Quantity = ba.Quantity,
-                        Addons = addonEntity,
-                        Booking = booking
+                        Price = addonEntity.Price,
+                        Addons = addonEntity
                     });
                 }
             }
+
+            booking.TotalPrice = basePrice + addonsPrice;
 
             _db.Bookings.Add(booking);
             await _db.SaveChangesAsync();
@@ -173,28 +203,41 @@ namespace Danplanner.Services
             return new BookingDto
             {
                 Id = booking.Id,
-                CampistId = booking.CampistId,
+                UserId = booking.UserId,
                 ProductId = booking.ProductId,
                 CottageId = booking.CottageId,
                 GrassFieldId = booking.GrassFieldId,
                 Product = new ProductDto
                 {
                     Id = product.Id,
-                    ProductType = product.ProductType,
-                    PricePerNight = product.PricePerNight
+                    ProductType = (ProductType)product.ProductType
                 },
                 Status = booking.Status,
                 StartDate = booking.StartDate,
                 EndDate = booking.EndDate,
                 NumberOfPeople = booking.NumberOfPeople,
+                TotalPrice = booking.TotalPrice,
                 BookingAddons = booking.BookingAddons.Select(ba => new BookingAddonDto
                 {
                     Id = ba.Id,
                     BookingId = ba.BookingId,
                     AddonId = ba.AddonId,
-                    Quantity = ba.Quantity
+                    Quantity = ba.Quantity,
+                    Price = ba.Price
                 }).ToList()
             };
+        }
+
+        public async Task<bool> ConfirmAsync(int bookingId, int userId)
+        {
+            var booking = await _db.Bookings.FirstOrDefaultAsync(b => b.Id == bookingId);
+            if (booking == null) return false;
+
+            booking.UserId = userId;
+            booking.Status = "Aktiv";
+
+            await _db.SaveChangesAsync();
+            return true;
         }
     }
 }

@@ -19,12 +19,11 @@ namespace Danplanner.Services
                     MaxCapacity = h.MaxCapacity,
                     Number = h.Number,
                     ProductId = h.ProductId,
+                    PricePerNight = h.PricePerNight,
                     Product = new ProductDto
                     {
                         Id = h.Product.Id,
-                        ProductType = h.Product.ProductType,
-                        PricePerNight = h.Product.PricePerNight
-                        // MaxGuests er fjernet
+                        ProductType = (ProductType)h.Product.ProductType
                     }
                 })
                 .ToListAsync();
@@ -41,12 +40,11 @@ namespace Danplanner.Services
                 MaxCapacity = h.MaxCapacity,
                 Number = h.Number,
                 ProductId = h.ProductId,
+                PricePerNight = h.PricePerNight,
                 Product = new ProductDto
                 {
                     Id = h.Product.Id,
-                    ProductType = h.Product.ProductType,
-                    PricePerNight = h.Product.PricePerNight
-                    // MaxGuests er fjernet
+                    ProductType = (ProductType)h.Product.ProductType
                 }
             };
         }

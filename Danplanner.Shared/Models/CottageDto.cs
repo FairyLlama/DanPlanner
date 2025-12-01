@@ -13,6 +13,8 @@ namespace Danplanner.Shared.Models
         public int MaxCapacity { get; set; }
         public int Number { get; set; }
 
+        public decimal PricePerNight { get; set; }
+
         public ProductDto? Product { get; set; }
 
 
