@@ -1,0 +1,25 @@
+@page "/booking"
+@rendermode InteractiveServer
+@using System.Runtime.CompilerServices
+@using Danplanner.Shared.Models
+@using Danplanner.Client.Components
+@inject IBookingService BookingService
+
+<DatePicker StartDateChanged="HandleStartDateChange" EndDateChanged="HandleEndDateChange"/>
+<FieldPicker/>
+
+@code {
+    private DateOnly? startDate;
+    private DateOnly? endDate;
+
+    private void HandleStartDateChange(DateTime? date)
+    {
+        startDate = DateOnly.FromDateTime(date.GetValueOrDefault());
+    }
+
+    private void HandleEndDateChange(DateTime? date)
+    {
+        endDate = DateOnly.FromDateTime(date.GetValueOrDefault());
+    }
+}
+
