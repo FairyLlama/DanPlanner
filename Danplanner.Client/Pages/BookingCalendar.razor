@@ -35,15 +35,6 @@
     }
 </div>
 
-@code{
-    private DateTime? startDate;
-    private DateTime? endDate;
-
-    private string ChangeDate(DateTime? date)
-    {
-        return date != null ? DateOnly.FromDateTime(date.GetValueOrDefault()).ToString() : "";
-    }
-
 <body>
 	<h3><b>V&#230;lg den plads du &#248;nsker at booke</b></h3>
 
@@ -78,6 +69,15 @@
 
 @code {
 
+      private DateTime? startDate;
+      private DateTime? endDate;
+
+      private string ChangeDate(DateTime? date)
+      {
+          return date != null ? DateOnly.FromDateTime(date.GetValueOrDefault()).ToString() : "";
+      }
+
+
 	  private int SelectedCottageNumber { get; set; }
       private int SelectedFieldNumber { get; set; }
 
@@ -85,10 +85,11 @@
       private IEnumerable<int> CottageNumbers = new List<int>
 	  { 14, 15, 16, 19, 22, 23, 24, 25, 26, 27, 28, 45, 46, 47 };
 
-      // 36 gr?spladser
+      // 36 gr�spladser
       private IEnumerable<int> FieldNumbers = new List<int>
 	  { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 17, 18, 20, 21, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44 };	
   
+
 }
 
 
