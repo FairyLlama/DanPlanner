@@ -1,65 +1,47 @@
 @rendermode InteractiveServer
 @using System.Runtime.CompilerServices
 @using Danplanner.Shared.Models
-@Inject ICottageService CottageService
-@Inject IGrassFieldService GrassFieldService
+@inject ICottageService CottageService
+@inject IGrassFieldService GrassFieldService
 
 
-@*<div class="d-flex justify-content-center">
-    <h3><b>V&#230;lg den plads du &#248;nsker at booke</b></h3>
-</div>*@
-
-<div class="form-group mb-3">
-    <label class="form-label">V&#230;lg hytte- eller græsplads</label>
-    <InputSelect @bind-Value="SelectedType" class="form-select">
-        <option value="0" disabled="disabled" selected>-- V&#230;lg --</option>
-        @foreach (var type in Enum.GetValues(typeof(ProductType)))
+<div class="form-group mb-3" style="transform: translateX(25%);">
+    <label class="form-label">V&#230;lg type</label>
+    <InputSelect id="Field" @bind-Value="SelectedType" class="form-select" style="max-width: 50%" @onclick="SelectedFieldChanged">
+        <option value="null" selected>-</option>
+        @foreach (var type in Enum.GetValues<ProductType>())
         {
-            option value="@productType">@productType</option>  
+            <option value="@type">@(@type == ProductType.Cottage ? "Hytteplads" : "Græsplads")</option>  
         }
 
     </InputSelect>
 </div>
-
-    @if (SelectedType == ProductType.Cottage) 
-        {
-           <div class="form-group mb-3">
-             <label class="form-label">V&#230;lg antal personer</label>
-             <InputSelect id="AmountOfPeople" @bind-value="SelectedAmount" class="form-select">
-         
-                 @foreach (var p in AmountOfPeople)
-                 {
-                     <option value="@p">@p</option>		
-                 }
-             </InputSelect>
-            </div> 
-        }
-
-   
-                        
-<div class="form-group mb-3">
-    <label class="form-label">V&#230;lg hytteplads</label>
-    <InputSelect id="Cottages" @bind-Value="SelectedCottageNumber" class="form-select">
-        <option value="0" disabled="disabled" selected>-- V&#230;lg --</option>
-        @foreach (var cottagenum in Cottages)
-        {
-            <option value="@cottagenum.Number">@cottagenum.Number</option>		
-        }
-    </InputSelect>
-</div>
+    
+@if(SelectedType == ProductType.Cottage)
+{
+    <div class="form-group mb-3" style="transform: translateX(25%);">
+        <label class="form-label">V&#230;lg hytteplads</label>
+        <InputSelect id="CottageNumbers" @bind-Value="SelectedFieldNumber" class="form-select" style="max-width: 50%" @onclick="SelectedFieldNumberChanged">
+            <option value="0" selected>-</option>
+            @foreach (var cottagenum in GetAvailableCottagesByGuests())
+            {
+                <option value="@cottagenum">@cottagenum</option>		
+            }
+        </InputSelect>
+    </div>
 }
 
-@if(SelectedField.Equals("Græsplads")){
-<div class="form-group mb-3" style="transform: translateX(25%);">
-    <label class="form-label">V&#230;lg gr&#230;splads</label>
-    <InputSelect id="GrassFields" @bind-Value="SelectedFieldNumber" class="form-select">
-        <option value="0" disabled="disabled" selected>-- V&#230;lg --</option>
-        @foreach (var grassfieldnum in GrassFields)
-        {
-            <option value="@grassfieldnum.Number">@grassfieldnum.Number</option>
-        }
-    </InputSelect>
-</div>
+@if(SelectedType == ProductType.GrassField){
+    <div class="form-group mb-3" style="transform: translateX(25%);">
+        <label class="form-label">V&#230;lg gr&#230;splads</label>
+        <InputSelect id="FieldNumbers" @bind-Value="SelectedFieldNumber" class="form-select" style="max-width: 50%" @onclick="SelectedFieldNumberChanged">
+            <option value="0" selected>-</option>
+            @foreach (var grassfieldnum in GrassFields)
+            {
+                <option value="@grassfieldnum.Number">@grassfieldnum.Number</option>
+            }
+        </InputSelect>
+    </div>
 }
 
 <div class="d-flex justify-content-center">
@@ -69,27 +51,61 @@
 <div class="d-flex justify-content-center">
     <img src="../img/campingmap.png">
 </div>
-} 
 
 @code {
+    //Selection
+    @* private string? SelectedField {get; set;}
+    private int SelectedCottageNumber { get; set; }
+    private int SelectedFieldNumber { get; set; } *@
 
-      private string SelectedType { get; set }
-	  private int SelectedCottageNumber { get; set; }
-      private int SelectedFieldNumber { get; set; }
+      private ProductType? SelectedType { get; set; }
+      private int? SelectedFieldNumber { get; set; }
 
 
-      private List<CottageDto> Cottages = new List();
-      private List<GrassFieldDto> GrassFields = new List();
+      private List<CottageDto> Cottages = new List<CottageDto>();
+      private List<GrassFieldDto> GrassFields = new List<GrassFieldDto>();
 	 
 
      protected override async Task OnInitializedAsync()
      {
         await base.OnInitializedAsync();
 
-        Cottages = await Service.GetCottages.Async();
-        GrassFields = await Service.GetGrassFields.Async();
-
+        Cottages = await CottageService.GetAllAsync();
+        GrassFields = await GrassFieldService.GetAllAsync();
      }
 
+    @* Guests *@
+    [Parameter]
+    public int? GuestAmount { get; set; }
+
+    private Dictionary<int, List<int>> CottagesByPersonCount = new Dictionary<int, List<int>>()
+    {
+        [1] = new List<int> {1, 2, 3},
+        [2] = new List<int> {4, 5, 6},
+        [3] = new List<int> {7, 8, 9},
+        [4] = new List<int> {10, 11, 12},
+        [5] = new List<int> {13, 14, 15},
+    };
+
+    private List<int> GetAvailableCottagesByGuests()
+    {
+        if (GuestAmount is not null)
+        {
+            return CottagesByPersonCount[GuestAmount.Value];
+        }
+        return new();
+    }
+
+
+    [Parameter]
+    public EventCallback<ProductType?> SelectedFieldCallback { get; set; }
+    private async Task SelectedFieldChanged(MouseEventArgs e){
+        await SelectedFieldCallback.InvokeAsync(SelectedType);
+    }
+
+    [Parameter]
+    public EventCallback<int?> SelectedFieldNumberCallback { get; set; }
+    private async Task SelectedFieldNumberChanged(MouseEventArgs e){
+        await SelectedFieldNumberCallback.InvokeAsync(SelectedFieldNumber);
     }
 }

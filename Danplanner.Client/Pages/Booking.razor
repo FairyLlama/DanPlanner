@@ -10,7 +10,10 @@
     <GuestCounter GuestCountCallback="HandleGuestCountChanged"/>
 }
 @if(GuestCount is not null){
-    <FieldPicker SelectedFieldNumberCallback="HandleFieldNumberChanged" SelectedFieldCallback="HandleFieldTypeChanged"/>
+    <FieldPicker
+        SelectedFieldNumberCallback="HandleFieldNumberChanged"
+        SelectedFieldCallback="HandleFieldTypeChanged"
+        GuestAmount="GuestCount"/>
 }
 
     <CottageAddon/>
@@ -42,8 +45,8 @@
 
     @*Pladser*@
     @*Græs eller hytteplads*@
-    private string? FieldType;
-    private void HandleFieldTypeChanged(string? field){
+    private ProductType? FieldType;
+    private void HandleFieldTypeChanged(ProductType? field){
         FieldType = field;
     }
 

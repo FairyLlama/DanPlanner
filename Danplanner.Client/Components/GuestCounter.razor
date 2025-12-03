@@ -26,23 +26,25 @@
 
     private IEnumerable<int> AmountOfPeople = new List<int> { 1, 2, 3, 4, 5 };
 
-    Dictionary<int, List<int>> CottagesByPersonCount = new Dictionary<int, List<int>>()
+    @* Flyttet til FieldPicker.razor *@
+    @* Dictionary<int, List<int>> CottagesByPersonCount = new Dictionary<int, List<int>>()
     {
         [1] = new List<int> {1, 2, 3},
         [2] = new List<int> {4, 5, 6},
         [3] = new List<int> {7, 8, 9},
         [4] = new List<int> {10, 11, 12},
         [5] = new List<int> {13, 14, 15},
-    };
+    }; *@
 
 
-    public void AmountChanged(int value)
+    @* public void AmountChanged(int value)
     {
         if (CottagesByPersonCount.ContainsKey(value))
         {
            FilteredCottageNumbers = FieldsByPersonCount[value];
         }
-    }
+    } *@
+
     @*Callback event*@
     [Parameter]
     public EventCallback<int?> GuestCountCallback { get; set; }
