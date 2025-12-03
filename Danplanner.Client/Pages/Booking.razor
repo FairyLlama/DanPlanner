@@ -6,13 +6,20 @@
 @inject IBookingService BookingService
 
 <DatePicker StartDateChanged="HandleStartDateChange" EndDateChanged="HandleEndDateChange"/>
-<GuestCounter/>
-<FieldPicker/>
-<CottageAddon/>
+@if(startDate is not null && endDate is not null){
+    <GuestCounter GuestCountCallback="HandleGuestCountChanged"/>
+}
+@if(GuestCount is not null){
+    <FieldPicker SelectedFieldNumberCallback="HandleFieldNumberChanged" SelectedFieldCallback="HandleFieldTypeChanged"/>
+}
+
+    <CottageAddon/>
+
 <GrassField/>
 <Discount/>
 
 @code {
+    @*Kalender booking*@
     private DateOnly? startDate;
     private DateOnly? endDate;
 
@@ -25,5 +32,26 @@
     {
         endDate = DateOnly.FromDateTime(date.GetValueOrDefault());
     }
+
+    
+    @*Antal gæster*@
+    private int? GuestCount;
+    private void HandleGuestCountChanged(int? count){
+        GuestCount = count;
+    }
+
+    @*Pladser*@
+    @*Græs eller hytteplads*@
+    private string? FieldType;
+    private void HandleFieldTypeChanged(string? field){
+        FieldType = field;
+    }
+
+    @*Plads nummer på kort*@
+    private int? FieldNumber;
+    private void HandleFieldNumberChanged(int? fieldnumber){
+        FieldNumber = fieldnumber;
+    }
+
 }
 

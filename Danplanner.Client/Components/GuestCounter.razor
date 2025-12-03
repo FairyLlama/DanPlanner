@@ -8,7 +8,7 @@
 
 <div class="form-group mb-3" style="transform: translateX(25%);">
     <label class="form-label">V&#230;lg antal g&#230;ster</label> <br/>
-    <InputSelect id="AmountOfPeople" @bind-value="SelectedAmount" class="form-select" style="max-width: 50%">
+    <InputSelect id="AmountOfPeople" @bind-value="SelectedAmount" class="form-select" style="max-width: 50%" @onclick="GuestCountChanged">
     <option value="0" disabled="disabled" selected>-</option>
     @foreach (var p in AmountOfPeople)
         {
@@ -18,6 +18,7 @@
 </div>
 
 @code{
+    @*Selection*@
     private int SelectedAmount { get; set; }
     private int SelectedFieldNumber { get; set; }
 
@@ -41,5 +42,11 @@
         {
            FilteredNumbers = FieldsByPersonCount[value];
         }
+    }
+    @*Callback event*@
+    [Parameter]
+    public EventCallback<int?> GuestCountCallback { get; set; }
+    private async Task GuestCountChanged(MouseEventArgs e){
+        await GuestCountCallback.InvokeAsync(SelectedAmount);
     }
 }

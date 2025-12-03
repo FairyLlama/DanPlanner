@@ -9,7 +9,7 @@
 
 <div class="form-group mb-3" style="transform: translateX(25%);">
     <label class="form-label">V&#230;lg type</label>
-    <InputSelect id="Field" @bind-Value="SelectedField" class="form-select" style="max-width: 50%">
+    <InputSelect id="Field" @bind-Value="SelectedField" class="form-select" style="max-width: 50%" @onclick="SelectedFieldChanged">
         <option value="null" selected>-</option>
         @foreach (var number in FieldSelection)
         {
@@ -30,7 +30,7 @@
 @if(SelectedField.Equals("Hytteplads")){
 <div class="form-group mb-3" style="transform: translateX(25%);">
     <label class="form-label">V&#230;lg hytteplads</label>
-    <InputSelect id="CottageNumbers" @bind-Value="SelectedCottageNumber" class="form-select" style="max-width: 50%">
+    <InputSelect id="CottageNumbers" @bind-Value="SelectedFieldNumber" class="form-select" style="max-width: 50%" @onclick="SelectedFieldNumberChanged">
         <option value="0" selected>-</option>
         @foreach (var number in CottageNumbers)
         {
@@ -43,7 +43,7 @@
 @if(SelectedField.Equals("Græsplads")){
 <div class="form-group mb-3" style="transform: translateX(25%);">
     <label class="form-label">V&#230;lg gr&#230;splads</label>
-    <InputSelect id="FieldNumbers" @bind-Value="SelectedFieldNumber" class="form-select" style="max-width: 50%">
+    <InputSelect id="FieldNumbers" @bind-Value="SelectedFieldNumber" class="form-select" style="max-width: 50%" @onclick="SelectedFieldNumberChanged">
         <option value="0" selected>-</option>
         @foreach (var number in FieldNumbers)
         {
@@ -63,23 +63,35 @@
 } 
 
 @code {
+    //Selection
     private string? SelectedField {get; set;}
-    private int SelectedCottageNumber { get; set; }
+    @* private int SelectedCottageNumber { get; set; } *@
     private int SelectedFieldNumber { get; set; }
 
+    //Data
     private IEnumerable<string> FieldSelection = new List<string>
     {
         "Græsplads", "Hytteplads"
     };
-
-
     // 14 hytter
     private IEnumerable<int> CottageNumbers = new List<int>
     { 14, 15, 16, 19, 22, 23, 24, 25, 26, 27, 28, 45, 46, 47 };
 
-    // 36 gr�spladser
+    // 36 græspladser
     private IEnumerable<int> FieldNumbers = new List<int>
     { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 17, 18, 20, 21, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44 };	
+
+    [Parameter]
+    public EventCallback<string?> SelectedFieldCallback { get; set; }
+    private async Task SelectedFieldChanged(MouseEventArgs e){
+        await SelectedFieldCallback.InvokeAsync(SelectedField);
+    }
+
+    [Parameter]
+    public EventCallback<int?> SelectedFieldNumberCallback { get; set; }
+    private async Task SelectedFieldNumberChanged(MouseEventArgs e){
+        await SelectedFieldNumberCallback.InvokeAsync(SelectedFieldNumber);
+    }
   
     
 }
