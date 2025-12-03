@@ -1,0 +1,41 @@
+@rendermode InteractiveServer
+@using System.Runtime.CompilerServices
+@using Danplanner.Shared.Models
+
+<div class="form-group mb-3">
+    <label class="form-label">V&#230;lg antal personer</label>
+    <InputSelect id="AmountOfPeople" @bind-value="SelectedAmount" class="form-select">
+    
+    @foreach (var p in AmountOfPeople)
+        {
+            <option value="@p">@p</option>		
+        }
+	</InputSelect>
+</div>
+
+@code{
+    private int SelectedAmount { get; set; }
+    private int SelectedFieldNumber { get; set; }
+
+    private IEnumerable<int> FilteredNumbers = new List<int>();
+    private IEnumerable<int> AmountOfPeople = new List<int>
+    { 1, 2, 3, 4, 5 };
+    private IEnumerable<int> FieldNumbers = new List<int>
+    { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 17, 18, 20, 21, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44 };	
+
+    Dictionary<int, List<int>> FieldsByPersonCount = new Dictionary<int, List<int>>()
+    {
+        [1] = new List<int> {1, 2, 3},
+        [2] = new List<int> {4, 5, 6},
+        [3] = new List<int> {7, 8, 9},
+        [4] = new List<int> {10, 11, 12},
+        [5] = new List<int> {13, 14, 15},
+    };
+      public void AmountChanged(int value)
+    {
+        if (FieldsByPersonCount.ContainsKey(value))
+        {
+           FilteredNumbers = FieldsByPersonCount[value];
+        }
+    }
+}
