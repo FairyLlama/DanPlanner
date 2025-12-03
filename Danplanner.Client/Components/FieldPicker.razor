@@ -47,8 +47,10 @@
         }
     </InputSelect>
 </div>
+}
 
-<div class="form-group mb-3">
+@if(SelectedField.Equals("Græsplads")){
+<div class="form-group mb-3" style="transform: translateX(25%);">
     <label class="form-label">V&#230;lg gr&#230;splads</label>
     <InputSelect id="GrassFields" @bind-Value="SelectedFieldNumber" class="form-select">
         <option value="0" disabled="disabled" selected>-- V&#230;lg --</option>
@@ -58,14 +60,16 @@
         }
     </InputSelect>
 </div>
-    
+}
+
 <div class="d-flex justify-content-center">
-    <h3><b>Herunder ser du de forskellige pladsnumre</b></h3>
+    <h3><strong>Herunder ser du de forskellige pladsnumre</strong></h3>
 </div>
     
 <div class="d-flex justify-content-center">
     <img src="../img/campingmap.png">
 </div>
+} 
 
 @code {
 
