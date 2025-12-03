@@ -6,7 +6,11 @@
 @inject IBookingService BookingService
 
 <DatePicker StartDateChanged="HandleStartDateChange" EndDateChanged="HandleEndDateChange"/>
+<GuestCounter/>
 <FieldPicker/>
+<CottageAddon/>
+<GrassField/>
+<Discount/>
 
 @code {
     private DateOnly? startDate;

@@ -2,10 +2,14 @@
 @using System.Runtime.CompilerServices
 @using Danplanner.Shared.Models
 
-<div class="form-group mb-3">
-    <label class="form-label">V&#230;lg antal personer</label>
-    <InputSelect id="AmountOfPeople" @bind-value="SelectedAmount" class="form-select">
-    
+<div class="d-flex justify-content-center">
+    <h3><strong>V&#230;lg antal g&#230;ster</strong></h3>
+</div>
+
+<div class="form-group mb-3" style="transform: translateX(25%);">
+    <label class="form-label">V&#230;lg antal g&#230;ster</label> <br/>
+    <InputSelect id="AmountOfPeople" @bind-value="SelectedAmount" class="form-select" style="max-width: 50%">
+    <option value="0" disabled="disabled" selected>-</option>
     @foreach (var p in AmountOfPeople)
         {
             <option value="@p">@p</option>		
@@ -19,7 +23,7 @@
 
     private IEnumerable<int> FilteredNumbers = new List<int>();
     private IEnumerable<int> AmountOfPeople = new List<int>
-    { 1, 2, 3, 4, 5 };
+    { 1, 2, 3, 4, 5, 6, 7, 8 };
     private IEnumerable<int> FieldNumbers = new List<int>
     { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 17, 18, 20, 21, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44 };	
 
