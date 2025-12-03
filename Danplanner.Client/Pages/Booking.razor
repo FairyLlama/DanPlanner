@@ -9,6 +9,7 @@
 @if(startDate is not null && endDate is not null){
     <GuestCounter GuestCountCallback="HandleGuestCountChanged"/>
 }
+
 @if(GuestCount is not null){
     <FieldPicker
         SelectedFieldNumberCallback="HandleFieldNumberChanged"
@@ -16,9 +17,14 @@
         GuestAmount="GuestCount"/>
 }
 
-    <CottageAddon/>
+@if(FieldType == ProductType.Cottage){
+    <CottageAddon AddonCottageCallback="HandleSelectedCottageAddonsChanged"/>
+}
 
-<GrassField/>
+@if(FieldType == ProductType.GrassField){
+    <GrassFieldAddon AddonGrassFieldCallback="HandleSelectedGrassFieldAddonsChanged"/>
+}
+
 <Discount/>
 
 @code {
@@ -56,5 +62,16 @@
         FieldNumber = fieldnumber;
     }
 
+    @*Hytte tilkøb*@
+    private AddonDto? SelectedCottageAddons;
+    private void HandleSelectedCottageAddonsChanged(AddonDto? addon){
+        SelectedCottageAddons = addon;
+    }
+
+    @*Græsplads tilkøb*@
+    private AddonDto? SelectedGrassFieldAddons;
+    private void HandleSelectedGrassFieldAddonsChanged(AddonDto? addon){
+        SelectedGrassFieldAddons = addon;
+    }
 }
 

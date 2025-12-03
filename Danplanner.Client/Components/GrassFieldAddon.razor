@@ -2,7 +2,7 @@
 @using System.Runtime.CompilerServices
 @using Danplanner.Shared.Models
 
-<h3 class="mb-4">V&#230;lg tilk&#248;b til din gr&#230;splads</h3>
+<h3 class="mb-4"><strong>V&#230;lg tilk&#248;b til din gr&#230;splads</strong></h3>
 
 <EditForm Model="_dto" OnValidSubmit="ConfirmAddons">
     <DataAnnotationsValidator />
@@ -21,7 +21,7 @@
         }
     </div>
 
-    <button type="submit" class="btn btn-success mt-4">Bekr&#230;ft tilk&#248;b</button>
+    <button type="submit" class="btn btn-success mt-4" @onclick="AddonGrassFieldChanged">Bekr&#230;ft tilk&#248;b</button>
 </EditForm>
 
 @if (_confirmed)
@@ -30,20 +30,19 @@
         <h5>Tilk&#248;b bekr&#230;ftet</h5>
         <p>
             Valgte tilk&#248;b: @string.Join(", ", _addons.Where(a => a.Selected).Select(a => a.Name)) <br />
-            Ekstra pris: <strong>@_dto.TotalAddonsPrice kr.</strong>
+            Ekstra pris: <strong>@_dto.Price kr.</strong>
         </p>
     </div>
 }
 
 @code {
-    private AddonsDto _dto = new();
+    private AddonDto _dto = new();
     private bool _confirmed = false;
 
-    // 10 realistiske tilkøb med priser
+    // 9 realistiske tilkøb med priser
     private List<AddonOption> _addons = new()
     {
         new AddonOption { Name = "El-tilslutning", Price = 30m },
-        new AddonOption { Name = "Ekstra gæst", Price = 75m },
         new AddonOption { Name = "Hund med", Price = 40m },
         new AddonOption { Name = "Slutrengøring", Price = 150m },
         new AddonOption { Name = "Sengetøj & håndklæder", Price = 100m },
@@ -61,23 +60,16 @@
             .Select(a => a.Name)
             .ToList();
 
-        _dto.TotalAddonsPrice = _addons
+        _dto.Price = _addons
             .Where(a => a.Selected)
             .Sum(a => a.Price);
 
         _confirmed = true;
     }
 
-    private class AddonOption
-    {
-        public required string Name { get; set; } 
-        public decimal Price { get; set; }
-        public bool Selected { get; set; }
-    }
-
-    private class AddonsDto
-    {
-        public List<string> SelectedAddons { get; set; } = new();
-        public decimal TotalAddonsPrice { get; set; }
+    [Parameter]
+    public EventCallback<AddonDto?> AddonGrassFieldCallback { get; set; }
+    private async Task AddonGrassFieldChanged(MouseEventArgs e){
+        await AddonGrassFieldCallback.InvokeAsync(_dto);
     }
 }
