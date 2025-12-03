@@ -87,12 +87,9 @@
         await base.OnInitializedAsync();
 
         Cottages = await Service.GetCottages.Async();
+        GrassFields = await Service.GetGrassFields.Async();
+
      }
 
-     protected override async Task OnInitializedAsync()
-     {
-        GrassFields = await Service.GetGrassFields.Async();
-     }
-     
     }
 }
