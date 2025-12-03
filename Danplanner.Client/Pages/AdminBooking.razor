@@ -1,0 +1,420 @@
+﻿@page "/AdminBooking"
+@using Danplanner.Shared.Models
+@using Danplanner.Client.Services
+@inject ICottageService CottageService
+@inject IGrassFieldService GrassFieldService
+@inject IProductService ProductService
+@inject IBookingService BookingService
+@inject IAddonService AddonService
+@inject Authservice AuthService
+@inject NavigationManager NavManager
+@rendermode InteractiveServer
+
+<h3>Admin Booking</h3>
+
+<div class="row">
+    <!-- Venstre kolonne: trin-formular -->
+    <div class="col-md-6">
+        @if (CurrentStep == 0)
+        {
+            <EditForm Model="_dto" OnValidSubmit="HandleBooking">
+                <DataAnnotationsValidator />
+                <ValidationSummary />
+
+                <div>
+                    <label>Startdato:</label>
+                    <InputDate @bind-Value="StartDateProp" />
+                </div>
+                <div>
+                    <label>Slutdato:</label>
+                    <InputDate @bind-Value="EndDateProp" />
+                </div>
+
+                <div>
+                    <label>Produkt:</label>
+                    <InputSelect TValue="int" @bind-Value="ProductId">
+                        <option value="0">-- vælg produkt --</option>
+                        @foreach (var p in _products)
+                        {
+                            <option value="@p.Id">@TranslateType(p.ProductType)</option>
+                        }
+                    </InputSelect>
+                </div>
+
+                <div>
+                    <label>Antal personer:</label>
+                    <InputNumber @bind-Value="_dto.NumberOfPeople" />
+                </div>
+
+                @if (_selectedProduct?.ProductType == ProductType.Cottage)
+                {
+                    <div>
+                        <label>Hytte:</label>
+                        <InputSelect TValue="int?" @bind-Value="CottageIdProp">
+                            <option value="@((int?)null)">-- vælg hytte --</option>
+                            @foreach (var h in _cottages.Where(h => h.ProductId == _selectedProduct.Id))
+                            {
+                                <option value="@h.Id">Hytte #@h.Number (Kapacitet: @h.MaxCapacity, Pris: @h.PricePerNight kr./nat)</option>
+                            }
+                        </InputSelect>
+                    </div>
+                }
+                else if (_selectedProduct?.ProductType == ProductType.GrassField)
+                {
+                    <div>
+                        <label>Græsplads:</label>
+                        <InputSelect TValue="int?" @bind-Value="GrassFieldIdProp">
+                            <option value="@((int?)null)">-- vælg græsplads --</option>
+                            @foreach (var g in _grassFields.Where(g => g.ProductId == _selectedProduct.Id))
+                            {
+                                <option value="@g.Id">Plads #@g.Number (Størrelse: @g.Size, Pris: @g.PricePerNight kr./nat)</option>
+                            }
+                        </InputSelect>
+                    </div>
+                }
+
+                @if (_addons.Any())
+                {
+                    <div>
+                        <label>Tilkøb:</label>
+                        @foreach (var a in _addons)
+                        {
+                            <div>
+                                <input type="checkbox"
+                                       checked="@_selectedAddonIds.Contains(a.Id)"
+                                       @onchange="@((ChangeEventArgs e) => ToggleAddon(a.Id, e))" />
+                                @a.Name (@a.Price kr.)
+                                <input type="number" min="1"
+                                       value="@GetQuantity(a.Id)"
+                                       @onchange="@((ChangeEventArgs e) => SetQuantity(a.Id, int.Parse(e.Value?.ToString() ?? "1")))" />
+                            </div>
+                        }
+                    </div>
+                }
+
+                <button type="submit">Fortsæt</button>
+            </EditForm>
+        }
+        else if (CurrentStep == 1)
+        {
+            <EditForm Model="_user" OnValidSubmit="GoToSummary">
+                <DataAnnotationsValidator />
+                <ValidationSummary />
+
+                <div><label>Navn:</label><InputText @bind-Value="_user.Name" /></div>
+                <div><label>Email:</label><InputText @bind-Value="_user.Email" /></div>
+                <div><label>Telefon:</label><InputText @bind-Value="_user.Phone" /></div>
+                <div><label>Adresse:</label><InputText @bind-Value="_user.Address" /></div>
+                <div><label>Land:</label><InputText @bind-Value="_user.Country" /></div>
+                <div><label>Sprog:</label><InputText @bind-Value="_user.Language" /></div>
+                <div><label>Kodeord:</label><InputText @bind-Value="_user.Password" type="password" /></div>
+
+                <button type="submit">Fortsæt</button>
+                <button type="button" @onclick="() => GoBackToStep(0)">Tilbage</button>
+            </EditForm>
+        }
+        else if (CurrentStep == 2)
+        {
+            <h4>Bekræft booking og brugeroplysninger</h4>
+            <ul>
+                <li>Periode: @_dto.StartDate.ToShortDateString() – @_dto.EndDate.ToShortDateString()</li>
+                <li>Produkt: @_selectedProduct?.ProductType</li>
+                <li>Antal personer: @_dto.NumberOfPeople</li>
+                @if (_dto.CottageId != null)
+                {
+                    <li>Hytte: @_cottages.FirstOrDefault(c => c.Id == _dto.CottageId)?.Number</li>
+                }
+                @if (_dto.GrassFieldId != null)
+                {
+                    <li>Græsplads: @_grassFields.FirstOrDefault(g => g.Id == _dto.GrassFieldId)?.Number</li>
+                }
+                @if (_selectedAddonIds.Any())
+                {
+                    <li>
+                        Tilkøb:
+                        <ul>
+                            @foreach (var id in _selectedAddonIds)
+                            {
+                                var addon = _addons.FirstOrDefault(a => a.Id == id);
+                                <li>@addon?.Name x @GetQuantity(id) (@addon?.Price kr.)</li>
+                            }
+                        </ul>
+                    </li>
+                }
+                <li><strong>Totalpris: @TotalPrice kr.</strong></li>
+                <li>Kunde: @_user.Name (@_user.Email)</li>
+            </ul>
+
+            <button class="btn btn-secondary" @onclick="() => GoBackToStep(1)">Tilbage</button>
+            <button class="btn btn-success" @onclick="ConfirmBooking">Bekræft booking</button>
+        }
+        else if (CurrentStep == 3)
+        {
+            <p style="color:green">Booking #@_created?.Id er nu bekræftet og aktiv.</p>
+            <button type="button" @onclick="() => GoBackToStep(2)">Tilbage</button>
+        }
+
+        @if (!string.IsNullOrEmpty(_error))
+        {
+            <p style="color:red">@_error</p>
+        }
+        @if (!string.IsNullOrEmpty(_debugMessage))
+        {
+            <p style="color:blue">@_debugMessage</p>
+        }
+    </div>
+
+    <!-- Højre kolonne: booking-oversigt -->
+    <div class="col-md-6">
+        <h4>Din booking</h4>
+        <ul>
+            <li>Periode: @_dto.StartDate.ToShortDateString() – @_dto.EndDate.ToShortDateString()</li>
+            <li>Produkt: @_selectedProduct?.ProductType</li>
+            <li>Antal personer: @_dto.NumberOfPeople</li>
+            @if (_dto.CottageId != null)
+            {
+                <li>Hytte: @_cottages.FirstOrDefault(c => c.Id == _dto.CottageId)?.Number</li>
+            }
+            @if (_dto.GrassFieldId != null)
+            {
+                <li>Græsplads: @_grassFields.FirstOrDefault(g => g.Id == _dto.GrassFieldId)?.Number</li>
+            }
+            @if (_selectedAddonIds.Any())
+            {
+                <li>
+                    Tilkøb:
+                    <ul>
+                        @foreach (var id in _selectedAddonIds)
+                        {
+                            var addon = _addons.FirstOrDefault(a => a.Id == id);
+                            <li>@addon?.Name x @GetQuantity(id) (@addon?.Price kr.)</li>
+                        }
+                    </ul>
+                </li>
+            }
+            <li><strong>Totalpris: @TotalPrice kr.</strong></li>
+            @if (CurrentStep >= 1)
+            {
+                <li>Kunde: @_user.Name (@_user.Email)</li>
+            }
+        </ul>
+    </div>
+</div>
+
+@code {
+    private int CurrentStep = 0;
+
+    private BookingDto _dto = new()
+    {
+        StartDate = DateTime.Today,
+        EndDate = DateTime.Today.AddDays(1),
+        ProductId = 0,
+        NumberOfPeople = 1,
+        BookingAddons = new List<BookingAddonDto>()
+    };
+
+    private BookingDto? _created;
+    private List<ProductDto> _products = new();
+    private List<CottageDto> _cottages = new();
+    private List<GrassFieldDto> _grassFields = new();
+    private List<AddonDto> _addons = new();
+
+    private HashSet<int> _selectedAddonIds = new();
+    private Dictionary<int, int> _addonQuantities = new();
+
+    private ProductDto? _selectedProduct;
+    private string _error = "";
+    private AuthRequest _user = new();
+    private int _userId;
+    private string _debugMessage = "";
+    private decimal TotalPrice = 0;
+
+    // Wrapper properties der kalder UpdateTotal()
+    private int ProductId
+    {
+        get => _dto.ProductId;
+        set
+        {
+            _dto.ProductId = value;
+            _selectedProduct = _products.FirstOrDefault(p => p.Id == value);
+            _dto.CottageId = null;
+            _dto.GrassFieldId = null;
+            UpdateTotal();
+        }
+    }
+
+    private int? CottageIdProp
+    {
+        get => _dto.CottageId;
+        set { _dto.CottageId = value; UpdateTotal(); }
+    }
+
+    private int? GrassFieldIdProp
+    {
+        get => _dto.GrassFieldId;
+        set { _dto.GrassFieldId = value; UpdateTotal(); }
+    }
+
+    private DateTime StartDateProp
+    {
+        get => _dto.StartDate;
+        set { _dto.StartDate = value; UpdateTotal(); }
+    }
+
+    private DateTime EndDateProp
+    {
+        get => _dto.EndDate;
+        set { _dto.EndDate = value; UpdateTotal(); }
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (AuthService.CurrentUser?.Role != "Admin")
+            throw new InvalidOperationException("Bad request");
+
+        _products = await ProductService.GetAllAsync();
+        _cottages = await CottageService.GetAllAsync();
+        _grassFields = await GrassFieldService.GetAllAsync();
+        _addons = await AddonService.GetAllAsync();
+
+        foreach (var addon in _addons)
+            _addonQuantities[addon.Id] = 1;
+
+        UpdateTotal();
+    }
+
+    private void ToggleAddon(int addonId, ChangeEventArgs e)
+    {
+        bool isChecked = e.Value?.ToString()?.ToLower() == "true" || e.Value?.ToString() == "on";
+        if (isChecked) _selectedAddonIds.Add(addonId);
+        else _selectedAddonIds.Remove(addonId);
+        UpdateTotal();
+    }
+
+    private int GetQuantity(int id) =>
+        _addonQuantities.TryGetValue(id, out var q) ? Math.Max(q, 1) : 1;
+
+    private void SetQuantity(int id, int q)
+    {
+        _addonQuantities[id] = Math.Max(q, 1);
+        UpdateTotal();
+    }
+
+    private void UpdateTotal()
+    {
+        decimal basePrice = 0;
+
+        if (_selectedProduct?.ProductType == ProductType.Cottage && _dto.CottageId != null)
+        {
+            var cottage = _cottages.FirstOrDefault(c => c.Id == _dto.CottageId);
+            if (cottage != null) basePrice = cottage.PricePerNight;
+        }
+        else if (_selectedProduct?.ProductType == ProductType.GrassField && _dto.GrassFieldId != null)
+        {
+            var grass = _grassFields.FirstOrDefault(g => g.Id == _dto.GrassFieldId);
+            if (grass != null) basePrice = grass.PricePerNight;
+        }
+
+        int nights = (_dto.EndDate - _dto.StartDate).Days;
+        if (nights < 1) nights = 1;
+
+        decimal addonsPrice = _selectedAddonIds.Sum(id =>
+        {
+            var addon = _addons.FirstOrDefault(a => a.Id == id);
+            return addon != null ? addon.Price * GetQuantity(id) : 0;
+        });
+
+        TotalPrice = (basePrice * nights) + addonsPrice;
+        _dto.TotalPrice = TotalPrice;
+        StateHasChanged();
+    }
+
+    private async Task HandleBooking()
+    {
+        _dto.BookingAddons = _selectedAddonIds
+            .Select(id => new BookingAddonDto { AddonId = id, Quantity = GetQuantity(id) })
+            .ToList();
+
+        _dto.Status = "Afventer";
+
+        try
+        {
+            if (_created == null)
+            {
+                _created = await BookingService.CreateAsync(_dto);
+                if (_created != null)
+                {
+                    _debugMessage = $"Booking oprettet med ID {_created.Id}";
+                    CurrentStep = 1;
+                }
+                else _error = "Booking kunne ikke oprettes.";
+            }
+            else
+            {
+                _dto.Id = _created.Id;
+                var updated = await BookingService.UpdateAsync(_created.Id, _dto);
+                if (updated != null)
+                {
+                    _created = updated;
+                    _debugMessage = $"Booking #{_created.Id} er opdateret.";
+                    CurrentStep = 1;
+                }
+                else _error = "Booking kunne ikke opdateres.";
+            }
+        }
+        catch (Exception ex)
+        {
+            _error = $"Fejl ved booking: {ex.Message}";
+        }
+    }
+
+    private void GoToSummary()
+    {
+        // Når user-formen er valid → gå til samlet opsummering
+        CurrentStep = 2;
+    }
+
+    private async Task ConfirmBooking()
+    {
+        if (_created is null)
+        {
+            _debugMessage = "Booking mangler.";
+            return;
+        }
+
+        try
+        {
+            // 👇 Først gem user her
+            var userId = await AuthService.RegisterAsync(
+                _user.Password, _user.Name, _user.Email,
+                _user.Address, _user.Phone, _user.Country, _user.Language
+            );
+
+            if (userId is int id && id > 0)
+            {
+                _userId = id;
+                var success = await BookingService.ConfirmAsync(_created.Id, _userId);
+                if (success)
+                {
+                    _debugMessage = "Booking og bruger bekræftet, mail sendt.";
+                    CurrentStep = 3;
+                }
+                else _debugMessage = "Booking kunne ikke bekræftes.";
+            }
+            else _debugMessage = "Bruger kunne ikke gemmes.";
+        }
+        catch (Exception ex)
+        {
+            _debugMessage = $"Fejl ved bekræftelse: {ex.Message}";
+        }
+    }
+
+    private void GoBackToStep(int step) => CurrentStep = step;
+
+    private static string TranslateType(ProductType type) => type switch
+    {
+        ProductType.Cottage => "Hytte",
+        ProductType.GrassField => "Græsplads",
+        _ => type.ToString()
+    };
+}

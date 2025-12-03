@@ -4,6 +4,8 @@ using System.Net.Http.Json;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
 
 namespace Danplanner.Client.Services
 {
@@ -17,15 +19,22 @@ namespace Danplanner.Client.Services
 
         private string? _token;
 
-        // ---------- REGISTER (returnerer userId) ----------
-        public async Task<int?> RegisterAsync(
-            string password,
-            string name,
-            string email,
-            string address,
-            string phone,
-            string country,
-            string language)
+        // Event til UI-opdatering
+        public event Action? OnUserChanged;
+
+        public CurrentUser? CurrentUser { get; private set; }
+
+        // 👇 Property til beskeder
+        public string? LastMessage { get; private set; }
+
+        private void RaiseUserChanged()
+        {
+            OnUserChanged?.Invoke();
+        }
+
+        // ---------- REGISTER ----------
+        public async Task<int?> RegisterAsync(string password, string name, string email,
+            string address, string phone, string country, string language)
         {
             var request = new AuthRequest
             {
@@ -47,20 +56,12 @@ namespace Danplanner.Client.Services
 
             if (!response.IsSuccessStatusCode) return null;
 
-            // Forvent { "id": 123 }
-            var doc = JsonDocument.Parse(body);
+            using var doc = JsonDocument.Parse(body);
             return doc.RootElement.TryGetProperty("id", out var idProp) ? idProp.GetInt32() : (int?)null;
         }
 
-        // ---------- REGISTER (bool helper) ----------
-        public async Task<bool> RegisterOkAsync(
-            string password,
-            string name,
-            string email,
-            string address,
-            string phone,
-            string country,
-            string language)
+        public async Task<bool> RegisterOkAsync(string password, string name, string email,
+            string address, string phone, string country, string language)
         {
             var id = await RegisterAsync(password, name, email, address, phone, country, language);
             return id.HasValue && id.Value > 0;
@@ -77,12 +78,37 @@ namespace Danplanner.Client.Services
             var body = await response.Content.ReadAsStringAsync();
             Console.WriteLine($"DEBUG Login: Status={response.StatusCode}, Body={body}");
 
-            if (!response.IsSuccessStatusCode) return null;
+            if (!response.IsSuccessStatusCode)
+            {
+                LastMessage = "Login failed";
+                return null;
+            }
 
             var result = JsonSerializer.Deserialize<LoginResponse>(body, _jsonOptions);
-            _token = result?.Token; // 👈 token gemmes korrekt
+            _token = result?.Token;
 
-            Console.WriteLine($"DEBUG Parsed Token: {_token}");
+            if (_token != null)
+            {
+                var handler = new JwtSecurityTokenHandler();
+                var jwt = handler.ReadJwtToken(_token);
+
+                var emailClaim = jwt.Claims.FirstOrDefault(c => c.Type == "sub")?.Value ?? email;
+                var roleClaim = jwt.Claims.FirstOrDefault(c =>
+                    c.Type == ClaimTypes.Role || c.Type == "role")?.Value ?? "";
+
+                CurrentUser = new CurrentUser
+                {
+                    Email = emailClaim,
+                    Role = roleClaim
+                };
+
+                // 👇 Gem beskeden permanent
+                LastMessage = "Login successful";
+
+                Console.WriteLine($"DEBUG CurrentUser: {CurrentUser.Email}, Role={CurrentUser.Role}");
+
+                RaiseUserChanged();
+            }
 
             return _token;
         }
@@ -104,10 +130,9 @@ namespace Danplanner.Client.Services
     // ---------- DTOs ----------
     public class AuthRequest
     {
-        public string Email { get; set; } = string.Empty;   // login-identitet
-        public string Password { get; set; } = string.Empty;   // adgangskode
+        public string Email { get; set; } = string.Empty;
+        public string Password { get; set; } = string.Empty;
 
-        // Nye felter til campist
         public string Name { get; set; } = string.Empty;
         public string Address { get; set; } = string.Empty;
         public string Phone { get; set; } = string.Empty;
@@ -119,5 +144,11 @@ namespace Danplanner.Client.Services
     {
         [JsonPropertyName("token")]
         public string Token { get; set; } = string.Empty;
+    }
+
+    public class CurrentUser
+    {
+        public string Email { get; set; } = "";
+        public string Role { get; set; } = "";
     }
 }

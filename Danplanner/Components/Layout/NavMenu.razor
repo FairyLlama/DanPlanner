@@ -1,3 +1,5 @@
+﻿@inject Danplanner.Client.Services.Authservice AuthService
+
 <div class="top-row ps-3 navbar navbar-dark">
     <div class="container-fluid">
         <img src="img/danplanner-logo.png" style="max-width: 20vh" alt="Danplanner logo">
@@ -9,41 +11,43 @@
 <div class="nav-scrollable" onclick="document.querySelector('.navbar-toggler').click()">
     <nav class="flex-column">
 
-
-
         <div class="nav-item px-3">
             <NavLink class="nav-link" href="bookingcalendar">
-                <span class="bi" style="margin-bottom: 3vh" aria-hidden="true"><BookingIcon/></span> Booking
+                <span class="bi" style="margin-bottom: 3vh" aria-hidden="true"><BookingIcon /></span> Booking
             </NavLink>
         </div>
-        
+
         <div class="nav-item px-3">
             <NavLink class="nav-link" href="campingmap">
-                <span class="bi" style="margin-bottom: 3vh" aria-hidden="true"><MapIcon/></span> Oversigt
+                <span class="bi" style="margin-bottom: 3vh" aria-hidden="true"><MapIcon /></span> Oversigt
             </NavLink>
         </div>
 
         <div class="nav-item px-3">
             <NavLink class="nav-link" href="login">
-                <span class="bi" style="margin-bottom: 3vh" aria-hidden="true"><LoginIcon/></span> Login
+                <span class="bi" style="margin-bottom: 3vh" aria-hidden="true"><LoginIcon /></span> Login
             </NavLink>
         </div>
 
         <div class="nav-item px-3">
             <NavLink class="nav-link" href="register">
-                <span class="bi" style="margin-bottom: 3vh" aria-hidden="true"><AddUserIcon/></span> Register
+                <span class="bi" style="margin-bottom: 3vh" aria-hidden="true"><AddUserIcon /></span> Register
             </NavLink>
         </div>
 
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="users">
-                <span class="bi" style="margin-bottom: 3vh" aria-hidden="true"><UserIcon/></span> Users
-            </NavLink>
-        </div>
+        @* Admin-link kun hvis CurrentUser.Role == "Admin" *@
+        @if (AuthService.CurrentUser?.Role == "Admin")
+        {
+            <div class="nav-item px-3">
+                <NavLink class="nav-link" href="users">
+                    <span class="bi" style="margin-bottom: 3vh" aria-hidden="true"><UserIcon /></span> Users
+                </NavLink>
+            </div>
+        }
 
         <div class="nav-item px-3">
             <NavLink class="nav-link" href="camping">
-                <span class="bi" style="margin-bottom: 3vh" aria-hidden="true"><InfoIcon/></span> Information
+                <span class="bi" style="margin-bottom: 3vh" aria-hidden="true"><InfoIcon /></span> Information
             </NavLink>
         </div>
 
@@ -52,6 +56,24 @@
                 <span class="bi" style="margin-bottom: 3vh" aria-hidden="true"><InfoIcon /></span> Home
             </NavLink>
         </div>
+
+        @* Admin-link kun hvis CurrentUser.Role == "Admin" *@
+        @if (AuthService.CurrentUser?.Role == "Admin")
+        {
+            <div class="nav-item px-3">
+                <NavLink class="nav-link" href="AdminBooking">
+                    <span class="bi" style="margin-bottom: 3vh" aria-hidden="true"><InfoIcon /></span> Admin Booking
+                </NavLink>
+            </div>
+        }
+
     </nav>
 </div>
 
+@code {
+    protected override void OnInitialized()
+    {
+        // 👇 Subscribe til event fra AuthService
+        AuthService.OnUserChanged += () => InvokeAsync(StateHasChanged);
+    }
+}
