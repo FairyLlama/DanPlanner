@@ -2,13 +2,13 @@
 @using System.Runtime.CompilerServices
 @using Danplanner.Shared.Models
 
-<h3 class="mb-4"><strong>V&#230;lg tilk&#248;b til din hytte</strong></h3>
+<h3 class="d-flex justify-content-center"><strong>V&#230;lg tilk&#248;b til din hytte</strong></h3>
 
 <EditForm Model="_dto" OnValidSubmit="ConfirmAddons">
     <DataAnnotationsValidator />
     <ValidationSummary />
 
-    <div class="list-group">
+    <div class="list-group" style="transform: translateX(50%); max-width: 50%">
         @foreach (var option in _addons)
         {
             <label class="list-group-item d-flex justify-content-between align-items-center">

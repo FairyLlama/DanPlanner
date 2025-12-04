@@ -9,7 +9,7 @@
 <div class="form-group mb-3" style="transform: translateX(25%);">
     <label class="form-label">V&#230;lg antal g&#230;ster</label> <br/>
     <InputSelect id="AmountOfPeople" @bind-value="SelectedAmount" class="form-select" style="max-width: 50%" @onclick="GuestCountChanged">
-    <option value="0" disabled="disabled" selected>-</option>
+    <option value="null" selected>-</option>
     @foreach (var p in AmountOfPeople)
         {
             <option value="@p">@p</option>		
