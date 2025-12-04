@@ -39,24 +39,33 @@
         <label class="form-label">V&#230;lg gr&#230;splads</label>
         <InputSelect id="FieldNumbers" @bind-Value="SelectedFieldNumber" class="form-select" style="max-width: 50%" @onclick="SelectedFieldNumberChanged">
             <option value="0" selected>-</option>
-            @foreach (var grassfieldnum in GrassFields)
+            @foreach (var grassfieldnum in GetAvailableGrassfieldsByGuests())
             {
-                <option value="@grassfieldnum.Number">@grassfieldnum.Number</option>
+                <option value="@grassfieldnum">@grassfieldnum</option>
             }
         </InputSelect>
     </div>
 }
 
-<div class="d-flex justify-content-center">
-    <h3><strong>Herunder ser du de forskellige pladsnumre</strong></h3>
-</div>
-    
-<div class="d-flex justify-content-center">
-    <img src="../img/campingmap.png">
-</div>
+  <button type="button" class="btn btn-link p-0 text dark text-decoration-none" @onclick="ShowImage" style="color: black;">
+    <div class="d-flex justify-content-center">
+         <h3><strong>Klik her for at se de forskellige pladsnumre</strong></h3>
+    </div>
+</button> 
+   
+@if (imageSource is not null)
+    {    
+      <div class="d-flex justify-content-center">
+        <img src="@imageSource" />
+     </div>
+    }
+   
+}
 
 @code {
     //Selection
+      private ILookup<int, int>CottagesByPersonCount;
+      private ILookup<int, int>GrassfieldsByPersonCount;
       private ProductType? SelectedType { get; set; }
       private int? SelectedFieldNumber { get; set; }
 
@@ -71,29 +80,35 @@
 
         Cottages = await CottageService.GetAllAsync();
         GrassFields = await GrassFieldService.GetAllAsync();
+
+        CottagesByPersonCount = Cottages.ToLookup(c => c.MaxCapacity, c => c.Number);
+        GrassfieldsByPersonCount = GrassFields.ToLookup(g => g.MaxCapacity, g => g.Number);
      }
 
     @* Guests *@
     [Parameter]
     public int? GuestAmount { get; set; }
 
-    private Dictionary<int, List<int>> CottagesByPersonCount = new Dictionary<int, List<int>>()
-    {
-        [1] = new List<int> {1, 2, 3},
-        [2] = new List<int> {4, 5, 6},
-        [3] = new List<int> {7, 8, 9},
-        [4] = new List<int> {10, 11, 12},
-        [5] = new List<int> {13, 14, 15},
-    };
 
     private List<int> GetAvailableCottagesByGuests()
     {
         if (GuestAmount is not null)
         {
-            return CottagesByPersonCount[GuestAmount.Value];
+            return CottagesByPersonCount[GuestAmount.Value].ToList();
         }
         return new();
     }
+
+
+     private List<int> GetAvailableGrassfieldsByGuests()
+ {
+     if (GuestAmount is not null)
+     { 
+         return GrassfieldsByPersonCount[GuestAmount.Value].ToList();
+     }
+     return new();
+ }
+
 
 
     [Parameter]
@@ -107,4 +122,20 @@
     private async Task SelectedFieldNumberChanged(MouseEventArgs e){
         await SelectedFieldNumberCallback.InvokeAsync(SelectedFieldNumber);
     }
+
+    private string? imageSource;
+
+    private void ShowImage()
+    {
+        if (imageSource == null)
+        {
+            imageSource = "../img/campingmap.png";
+        }
+        else
+        {   
+            imageSource = null;
+        }   
+       
+    }
+
 }
