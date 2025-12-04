@@ -88,33 +88,41 @@
     private async Task HandleConfirmBooking()
     {
         decimal? totalPrice = 0.0m;
+        int? cottageId = null;
+        int? grassFieldId = null;
         if (FieldType == ProductType.Cottage)
         {
-            var cottage = await CottageService.GetByIdAsync(FieldNumber.GetValueOrDefault());
+            var allCottages = await CottageService.GetAllAsync();
+            var cottage = allCottages.FirstOrDefault(c => c.Number == FieldNumber);
+            cottageId = cottage?.Id;
             totalPrice = cottage?.PricePerNight + GuestCount * 400 + SelectedCottageAddons?.Price;
         }
         else if (FieldType == ProductType.GrassField)
         {
-            var grassField = await GrassFieldService.GetByIdAsync(FieldNumber.GetValueOrDefault());
+            var allGrassFields = await GrassFieldService.GetAllAsync();
+            var grassField = allGrassFields.FirstOrDefault(gf => gf.Number == FieldNumber);
+            grassFieldId = grassField?.Id;
             totalPrice = grassField?.PricePerNight + GuestCount * 200 + SelectedGrassFieldAddons?.Price;
         }
 
-        var allAddons = await AddonService.GetAllAsync();
+        @* var allAddons = await AddonService.GetAllAsync(); *@
 
         await BookingService.CreateAsync(new BookingDto{
             StartDate = startDate.GetValueOrDefault(),
             EndDate = endDate.GetValueOrDefault(),
             NumberOfPeople = GuestCount.GetValueOrDefault(),
             ProductId = FieldType == ProductType.Cottage ? 12 : 11,
-            Status = "Aktiv",
+            CottageId = cottageId ?? null,
+            GrassFieldId = grassFieldId ?? null,
             TotalPrice = totalPrice.GetValueOrDefault(),
-            BookingAddons = new List<BookingAddonDto>{
+            BookingAddons = new List<BookingAddonDto>(),
+            @* BookingAddons = new List<BookingAddonDto>{
                 new BookingAddonDto{
-                    Addon = FieldType == ProductType.Cottage ? SelectedCottageAddons : SelectedGrassFieldAddons,
                     Price = totalPrice.GetValueOrDefault(),
                     Quantity = 1,
+                    AddonId = 
                 }
-            },
+            }, *@
         });
     }
 }
