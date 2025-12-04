@@ -21,12 +21,12 @@
         }
     </div>
 
-    <button type="submit" class="btn btn-success mt-4" @onclick="AddonCottageChanged">Bekr&#230;ft tilk&#248;b</button>
+    <button type="submit" class="btn btn-success mt-4" style="transform: translateX(500%)" @onclick="AddonCottageChanged">Bekr&#230;ft tilk&#248;b</button>
 </EditForm>
 
 @if (_confirmed)
 {
-    <div class="alert alert-success mt-4">
+    <div class="alert alert-success mt-4" style="transform: translateX(50%); max-width: 50%">
         <h5>Tilk&#248;b bekr&#230;ftet</h5>
         <p>
             Valgte tilk&#248;b: @string.Join(", ", _addons.Where(a => a.Selected).Select(a => a.Name)) <br />
@@ -44,7 +44,7 @@
 {
     new AddonOption { Name = "Slutrengøring", Price = 250m },
     new AddonOption { Name = "Sengetøj & håndklæder", Price = 120m },
-    new AddonOption { Name = "Hund med", Price = 75m },
+    new AddonOption { Name = "Hund", Price = 75m },
     new AddonOption { Name = "Wi-Fi adgang", Price = 50m },
     new AddonOption { Name = "Barneseng", Price = 150m },
     new AddonOption { Name = "Højstol til børn", Price = 50m },
