@@ -7,6 +7,7 @@
 
         public required Product Product { get; set; }
 
+        public int MaxCapacity { get; set; }
         public string Size { get; set; } = "";
         public int Number { get; set; }
 
