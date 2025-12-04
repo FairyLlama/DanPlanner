@@ -3,14 +3,9 @@ using Danplanner.Shared.Models;
 
 namespace Danplanner.Client.Services
 {
-    public class BookingService : IBookingService
+    public class BookingService(IHttpClientFactory factory) : IBookingService
     {
-        private readonly HttpClient _http;
-
-        public BookingService(IHttpClientFactory factory)
-        {
-            _http = factory.CreateClient("EF");
-        }
+        private readonly HttpClient _http = factory.CreateClient("EF");
 
         public async Task<BookingDto?> CreateAsync(BookingDto dto)
         {
@@ -26,6 +21,13 @@ namespace Danplanner.Client.Services
         public async Task<BookingDto?> GetByIdAsync(int id)
         {
             return await _http.GetFromJsonAsync<BookingDto>($"api/booking/{id}");
+        }
+
+
+        public async Task<bool> ConfirmAsync(int bookingId, int userId)
+        {
+            var resp = await _http.PutAsJsonAsync($"api/booking/{bookingId}/confirm", userId);
+            return resp.IsSuccessStatusCode;
         }
     }
 

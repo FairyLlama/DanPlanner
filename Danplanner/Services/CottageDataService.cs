@@ -5,10 +5,9 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Danplanner.Services
 {
-    public class CottageDataService : ICottageDataService
+    public class CottageDataService(AppDbContext db) : ICottageDataService
     {
-        private readonly AppDbContext _db;
-        public CottageDataService(AppDbContext db) => _db = db;
+        private readonly AppDbContext _db = db;
 
         public async Task<List<CottageDto>> GetAllAsync() =>
             await _db.Cottages
@@ -17,15 +16,13 @@ namespace Danplanner.Services
                 {
                     Id = h.Id,
                     MaxCapacity = h.MaxCapacity,
+                    Number = h.Number,
                     ProductId = h.ProductId,
+                    PricePerNight = h.PricePerNight,
                     Product = new ProductDto
                     {
                         Id = h.Product.Id,
-                        ProductType = h.Product.ProductType,
-                        SeasonalPrice = h.Product.SeasonalPrice,
-                        ServicePrice = h.Product.ServicePrice,
-                        NumberOfGuests = h.Product.NumberOfGuests,
-                        AdditionalPurchases = h.Product.AdditionalPurchases
+                        ProductType = (ProductType)h.Product.ProductType
                     }
                 })
                 .ToListAsync();
@@ -40,15 +37,13 @@ namespace Danplanner.Services
             {
                 Id = h.Id,
                 MaxCapacity = h.MaxCapacity,
+                Number = h.Number,
                 ProductId = h.ProductId,
+                PricePerNight = h.PricePerNight,
                 Product = new ProductDto
                 {
                     Id = h.Product.Id,
-                    ProductType = h.Product.ProductType,
-                    SeasonalPrice = h.Product.SeasonalPrice,
-                    ServicePrice = h.Product.ServicePrice,
-                    NumberOfGuests = h.Product.NumberOfGuests,
-                    AdditionalPurchases = h.Product.AdditionalPurchases
+                    ProductType = (ProductType)h.Product.ProductType
                 }
             };
         }

@@ -1,18 +1,15 @@
-﻿namespace Danplanner.Data.Entities
+﻿using Danplanner.Shared.Models;
+namespace Danplanner.Data.Entities
 {
+  
+
     public class Product
     {
         public int Id { get; set; }
 
-        public string ProductType { get; set; } = "";
+        // Enum i stedet for string
+        public ProductType ProductType { get; set; }
 
-        public decimal SeasonalPrice { get; set; }
-
-        public decimal ServicePrice { get; set; }
-
-        public int NumberOfGuests { get; set; }
-
-        public string AdditionalPurchases { get; set; } = "";
+        public ICollection<Booking> Bookings { get; set; } = new List<Booking>();
     }
-
-}
+}   

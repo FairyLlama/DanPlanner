@@ -4,9 +4,20 @@ using Danplanner.Components;
 using Danplanner.Data;
 using Danplanner.Services;
 using Microsoft.EntityFrameworkCore;
+using System.Text.Json.Serialization;
+using QuestPDF.Infrastructure;
 
 
 var builder = WebApplication.CreateBuilder(args);
+
+QuestPDF.Settings.License = LicenseType.Community;
+
+
+// 👇 Tilføj logging
+builder.Logging.ClearProviders();
+builder.Logging.AddConsole();
+
+
 
 // Blazor setup – Interactive render modes
 builder.Services.AddRazorComponents()
@@ -14,9 +25,17 @@ builder.Services.AddRazorComponents()
     .AddInteractiveWebAssemblyComponents();
 
 
-// Controllers (REST API endpoints i serveren)
-
+// Her sørger vi for at enums sendes/læses som tekst i JSON
 builder.Services.AddControllers();
+    //.AddJsonOptions(o =>
+    //{
+    //    o.JsonSerializerOptions.PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase;
+    //    o.JsonSerializerOptions.DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull;
+
+    //    // 👇 Vigtigt: sørger for at enums sendes/læses som tekst
+    //    o.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
+    //});
+
 
 // Database setup - SQL Server
 
@@ -47,11 +66,16 @@ builder.Services.AddScoped<IProductService, ProductService>();
 builder.Services.AddScoped<IProductDataService, ProductDataService>();
 builder.Services.AddScoped<ICottageService, CottageService>();
 builder.Services.AddScoped<ICottageDataService, CottageDataService>();
+builder.Services.AddScoped<IGrassFieldService, GrassFieldService>();
+builder.Services.AddScoped<IGrassFieldDataService, GrassFieldDataService>();
+builder.Services.AddScoped<IAddonService, AddonService>();
+builder.Services.AddScoped<IAddonDataService, AddonDataService>();
+builder.Services.AddScoped<IEmailService, EmailService>();
+builder.Services.AddScoped<IReceiptService, ReceiptService>();
+
 
 
 builder.Services.AddScoped<CampingSiteSeeder>();
-builder.Services.AddScoped<BookingSeeder>();
-
 
 
 // Antiforgery setup
@@ -72,8 +96,7 @@ using (var scope = app.Services.CreateScope())
 
 using (var scope = app.Services.CreateScope())
 {
-    var seeder = scope.ServiceProvider.GetRequiredService<BookingSeeder>();
-    await seeder.SeedAsync();
+
 }
 
 // Map controllers
@@ -82,12 +105,16 @@ app.MapControllers();
 if (app.Environment.IsDevelopment())
 {
     app.UseWebAssemblyDebugging();
+    app.UseDeveloperExceptionPage();
 }
 else
 {
     app.UseExceptionHandler("/Error", createScopeForErrors: true);
     app.UseHsts();
 }
+
+
+
 
 app.UseHttpsRedirection();
 app.UseStaticFiles();

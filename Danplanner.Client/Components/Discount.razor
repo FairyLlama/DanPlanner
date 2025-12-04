@@ -1,0 +1,27 @@
+@rendermode InteractiveServer
+@using System.Runtime.CompilerServices
+@using Danplanner.Shared.Models
+
+
+<div class="d-flex justify-content-center">
+<h5><strong>Rabat muligheder</strong></h5>
+</div>
+
+<div class="d-flex justify-content-center">
+    <div class="form-check form-check-inline">
+        <input class="form-check-input" type="radio" name="discount" id="no-discount" checked />
+        <label class="form-check-label" for="Ingen rabat">Ingen rabat</label>
+    </div>
+    <div class="form-check form-check-inline">
+        <input class="form-check-input" type="radio" name="discount" id="senior-discount" />
+        <label class="form-check-label" for="senior-discount">Seniorrabat</label>
+    </div>
+    <div class="form-check form-check-inline">
+        <input class="form-check-input" type="radio" name="discount" id="student-discount" />
+        <label class="form-check-label" for="student-discount">Studierabat</label>
+    </div>
+</div>
+
+@* @code {
+    private string SelectDiscount { get; set; }
+} *@

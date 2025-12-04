@@ -22,6 +22,26 @@ namespace Danplanner.Migrations
 
             MySqlModelBuilderExtensions.AutoIncrementColumns(modelBuilder);
 
+            modelBuilder.Entity("Danplanner.Data.Entities.Addons", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<decimal>("Price")
+                        .HasColumnType("decimal(65,30)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Addons");
+                });
+
             modelBuilder.Entity("Danplanner.Data.Entities.Booking", b =>
                 {
                     b.Property<int>("Id")
@@ -30,29 +50,78 @@ namespace Danplanner.Migrations
 
                     MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<bool>("CancelBooking")
-                        .HasColumnType("tinyint(1)");
+                    b.Property<int>("CampistId")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("CottageId")
+                        .HasColumnType("int");
 
                     b.Property<DateTime>("EndDate")
                         .HasColumnType("datetime(6)");
 
+                    b.Property<int?>("GrassFieldId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("NumberOfPeople")
+                        .HasColumnType("int");
+
                     b.Property<int>("ProductId")
                         .HasColumnType("int");
 
-                    b.Property<bool>("Rebook")
-                        .HasColumnType("tinyint(1)");
-
                     b.Property<DateTime>("StartDate")
                         .HasColumnType("datetime(6)");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<decimal>("TotalPrice")
+                        .HasColumnType("decimal(65,30)");
 
                     b.Property<int>("UserId")
                         .HasColumnType("int");
 
                     b.HasKey("Id");
 
+                    b.HasIndex("CottageId");
+
+                    b.HasIndex("GrassFieldId");
+
                     b.HasIndex("ProductId");
 
                     b.ToTable("Bookings");
+                });
+
+            modelBuilder.Entity("Danplanner.Data.Entities.BookingAddon", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("AddonId")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("AddonsId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("BookingId")
+                        .HasColumnType("int");
+
+                    b.Property<decimal>("Price")
+                        .HasColumnType("decimal(65,30)");
+
+                    b.Property<int>("Quantity")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AddonsId");
+
+                    b.HasIndex("BookingId");
+
+                    b.ToTable("BookingAddons");
                 });
 
             modelBuilder.Entity("Danplanner.Data.Entities.CampingSite", b =>
@@ -102,6 +171,12 @@ namespace Danplanner.Migrations
                     b.Property<int>("MaxCapacity")
                         .HasColumnType("int");
 
+                    b.Property<int>("Number")
+                        .HasColumnType("int");
+
+                    b.Property<decimal>("PricePerNight")
+                        .HasColumnType("decimal(65,30)");
+
                     b.Property<int>("ProductId")
                         .HasColumnType("int");
 
@@ -120,18 +195,22 @@ namespace Danplanner.Migrations
 
                     MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<string>("Description")
-                        .IsRequired()
-                        .HasColumnType("longtext");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasColumnType("longtext");
+                    b.Property<int>("Number")
+                        .HasColumnType("int");
 
                     b.Property<decimal>("PricePerNight")
                         .HasColumnType("decimal(65,30)");
 
+                    b.Property<int>("ProductId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Size")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
                     b.HasKey("Id");
+
+                    b.HasIndex("ProductId");
 
                     b.ToTable("GrassFields");
                 });
@@ -144,37 +223,78 @@ namespace Danplanner.Migrations
 
                     MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<string>("AdditionalPurchases")
-                        .IsRequired()
-                        .HasColumnType("longtext");
-
-                    b.Property<int>("NumberOfGuests")
-                        .HasColumnType("int");
-
                     b.Property<string>("ProductType")
                         .IsRequired()
                         .HasColumnType("longtext");
-
-                    b.Property<decimal>("SeasonalPrice")
-                        .HasColumnType("decimal(65,30)");
-
-                    b.Property<decimal>("ServicePrice")
-                        .HasColumnType("decimal(65,30)");
 
                     b.HasKey("Id");
 
                     b.ToTable("Products");
                 });
 
+            modelBuilder.Entity("Danplanner.Data.Entities.Receipt", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("BookingId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("Date")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<decimal>("TotalPrice")
+                        .HasColumnType("decimal(65,30)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("BookingId")
+                        .IsUnique();
+
+                    b.ToTable("Receipts");
+                });
+
             modelBuilder.Entity("Danplanner.Data.Entities.Booking", b =>
                 {
-                    b.HasOne("Danplanner.Data.Entities.Product", "Product")
+                    b.HasOne("Danplanner.Data.Entities.Cottage", "Cottage")
                         .WithMany()
+                        .HasForeignKey("CottageId");
+
+                    b.HasOne("Danplanner.Data.Entities.GrassField", "GrassField")
+                        .WithMany()
+                        .HasForeignKey("GrassFieldId");
+
+                    b.HasOne("Danplanner.Data.Entities.Product", "Product")
+                        .WithMany("Bookings")
                         .HasForeignKey("ProductId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.Navigation("Cottage");
+
+                    b.Navigation("GrassField");
+
                     b.Navigation("Product");
+                });
+
+            modelBuilder.Entity("Danplanner.Data.Entities.BookingAddon", b =>
+                {
+                    b.HasOne("Danplanner.Data.Entities.Addons", "Addons")
+                        .WithMany("BookingAddons")
+                        .HasForeignKey("AddonsId");
+
+                    b.HasOne("Danplanner.Data.Entities.Booking", "Booking")
+                        .WithMany("BookingAddons")
+                        .HasForeignKey("BookingId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Addons");
+
+                    b.Navigation("Booking");
                 });
 
             modelBuilder.Entity("Danplanner.Data.Entities.Cottage", b =>
@@ -186,6 +306,45 @@ namespace Danplanner.Migrations
                         .IsRequired();
 
                     b.Navigation("Product");
+                });
+
+            modelBuilder.Entity("Danplanner.Data.Entities.GrassField", b =>
+                {
+                    b.HasOne("Danplanner.Data.Entities.Product", "Product")
+                        .WithMany()
+                        .HasForeignKey("ProductId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Product");
+                });
+
+            modelBuilder.Entity("Danplanner.Data.Entities.Receipt", b =>
+                {
+                    b.HasOne("Danplanner.Data.Entities.Booking", "Booking")
+                        .WithOne("Receipt")
+                        .HasForeignKey("Danplanner.Data.Entities.Receipt", "BookingId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Booking");
+                });
+
+            modelBuilder.Entity("Danplanner.Data.Entities.Addons", b =>
+                {
+                    b.Navigation("BookingAddons");
+                });
+
+            modelBuilder.Entity("Danplanner.Data.Entities.Booking", b =>
+                {
+                    b.Navigation("BookingAddons");
+
+                    b.Navigation("Receipt");
+                });
+
+            modelBuilder.Entity("Danplanner.Data.Entities.Product", b =>
+                {
+                    b.Navigation("Bookings");
                 });
 #pragma warning restore 612, 618
         }

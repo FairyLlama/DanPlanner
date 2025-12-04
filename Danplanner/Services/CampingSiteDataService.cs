@@ -6,10 +6,9 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Danplanner.Services
 {
-    public class CampingSiteDataService : ICampingSiteDataService
+    public class CampingSiteDataService(AppDbContext db) : ICampingSiteDataService
     {
-        private readonly AppDbContext _db;
-        public CampingSiteDataService(AppDbContext db) => _db = db;
+        private readonly AppDbContext _db = db;
 
         public async Task<List<CampingSiteDto>> GetAllAsync() =>
             await _db.CampingSites

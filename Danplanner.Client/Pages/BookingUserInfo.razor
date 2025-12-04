@@ -1,0 +1,173 @@
+﻿@page "/booking-user/{bookingId:int}"
+
+@using Danplanner.Shared.Models
+@using Danplanner.Client.Services
+@inject IBookingService BookingService
+@inject Authservice AuthService
+@rendermode InteractiveServer
+
+<h3>Udfyld dine oplysninger</h3>
+
+@if (_booking is null)
+{
+    <p>Indlæser booking...</p>
+}
+else if (_confirmed)
+{
+    <p style="color:green">
+        Booking #@_booking.Id er nu bekræftet og aktiv.
+        Tak fordi du bookede hos os, @_user.Name!
+    </p>
+}
+else
+{
+    @if (!_userSaved)
+    {
+        <EditForm Model="_user" OnValidSubmit="HandleUserSubmit">
+            <DataAnnotationsValidator />
+            <ValidationSummary />
+
+            <div>
+                <label>Navn:</label>
+                <InputText @bind-Value="_user.Name" />
+            </div>
+
+            <div>
+                <label>Email:</label>
+                <InputText @bind-Value="_user.Email" />
+            </div>
+
+            <div>
+                <label>Telefon:</label>
+                <InputText @bind-Value="_user.Phone" />
+            </div>
+
+            <div>
+                <label>Adresse:</label>
+                <InputText @bind-Value="_user.Address" />
+            </div>
+
+            <div>
+                <label>Land:</label>
+                <InputText @bind-Value="_user.Country" />
+            </div>
+
+            <div>
+                <label>Sprog:</label>
+                <InputText @bind-Value="_user.Language" />
+            </div>
+
+            <div>
+                <label>Kodeord:</label>
+                <InputText @bind-Value="_user.Password" type="password" />
+            </div>
+
+            <button type="submit">Fortsæt</button>
+        </EditForm>
+    }
+    else
+    {
+        <h4>Oversigt</h4>
+        <p>
+            Booking #@_booking.Id — Produkt: @_booking.Product?.ProductType —
+            Periode: @_booking.StartDate.ToShortDateString() til @_booking.EndDate.ToShortDateString() —
+            Antal personer: @_booking.NumberOfPeople — Samlet pris: @_booking.TotalPrice kr.
+        </p>
+        <p>
+            Kunde: @_user.Name, Email: @_user.Email, Telefon: @_user.Phone
+        </p>
+
+        <button @onclick="ConfirmBooking">Bekræft</button>
+
+        <!-- 🔍 Debug info -->
+        @if (!string.IsNullOrEmpty(_debugMessage))
+        {
+            <div style="color:red; margin-top:10px;">
+                Debug: @_debugMessage
+            </div>
+        }
+    }
+}
+
+@code {
+    [Parameter] public int bookingId { get; set; }
+
+    private BookingDto? _booking;
+    private AuthRequest _user = new();
+    private bool _userSaved = false;
+    private bool _confirmed = false;
+    private int _userId;
+    private string _debugMessage = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            _booking = await BookingService.GetByIdAsync(bookingId);
+            _debugMessage = $"Booking hentet med ID {_booking?.Id}";
+        }
+        catch (Exception ex)
+        {
+            _debugMessage = $"Fejl ved hentning: {ex.Message}";
+        }
+    }
+
+    private async Task HandleUserSubmit()
+    {
+        try
+        {
+            var userId = await AuthService.RegisterAsync(
+                _user.Password,
+                _user.Name,
+                _user.Email,
+                _user.Address,
+                _user.Phone,
+                _user.Country,
+                _user.Language
+            );
+
+            if (userId is int id && id > 0)
+            {
+                _userId = id;
+                _userSaved = true;
+                _debugMessage = $"Bruger gemt med ID {_userId}";
+            }
+            else
+            {
+                _debugMessage = "Bruger kunne ikke gemmes.";
+            }
+        }
+        catch (Exception ex)
+        {
+            _debugMessage = $"Fejl ved brugerregistrering: {ex.Message}";
+        }
+    }
+
+    private async Task ConfirmBooking()
+    {
+        if (_booking is null || _userId <= 0)
+        {
+            _debugMessage = "Booking eller UserId mangler.";
+            return;
+        }
+
+        try
+        {
+            var success = await BookingService.ConfirmAsync(_booking.Id, _userId);
+            if (success)
+            {
+                _confirmed = true;
+                _debugMessage = "Booking bekræftet og mail sendt.";
+            }
+            else
+            {
+                _debugMessage = "Booking kunne ikke bekræftes (server returnerede false).";
+            }
+        }
+        catch (Exception ex)
+        {
+            // 👀 Her fanger vi fejl fra maildelen eller kvittering
+            _debugMessage = $"Fejl ved bekræftelse: {ex.Message}";
+        }
+    }
+}

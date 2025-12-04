@@ -24,6 +24,6 @@ namespace Danplanner.Controllers
             return c is null ? NotFound() : c;
         }
 
-   
+
     }
 }

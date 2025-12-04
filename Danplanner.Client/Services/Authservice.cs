@@ -7,9 +7,9 @@ using System.Text.Json.Serialization;
 
 namespace Danplanner.Client.Services
 {
-    public class Authservice
+    public class Authservice(IHttpClientFactory factory)
     {
-        private readonly HttpClient _http;
+        private readonly HttpClient _http = factory.CreateClient("Auth");
         private readonly JsonSerializerOptions _jsonOptions = new()
         {
             PropertyNamingPolicy = JsonNamingPolicy.CamelCase
@@ -17,14 +17,8 @@ namespace Danplanner.Client.Services
 
         private string? _token;
 
-        public Authservice(IHttpClientFactory factory)
-        {
-            _http = factory.CreateClient("Auth");
-        }
-
-        // ---------- REGISTER ----------
-        // ---------- REGISTER ----------
-        public async Task<bool> RegisterAsync(
+        // ---------- REGISTER (returnerer userId) ----------
+        public async Task<int?> RegisterAsync(
             string password,
             string name,
             string email,
@@ -51,10 +45,27 @@ namespace Danplanner.Client.Services
             var body = await response.Content.ReadAsStringAsync();
             Console.WriteLine($"DEBUG Register: Status={response.StatusCode}, Body={body}");
 
-            return response.IsSuccessStatusCode;
+            if (!response.IsSuccessStatusCode) return null;
+
+            // Forvent { "id": 123 }
+            var doc = JsonDocument.Parse(body);
+            return doc.RootElement.TryGetProperty("id", out var idProp) ? idProp.GetInt32() : (int?)null;
         }
 
- 
+        // ---------- REGISTER (bool helper) ----------
+        public async Task<bool> RegisterOkAsync(
+            string password,
+            string name,
+            string email,
+            string address,
+            string phone,
+            string country,
+            string language)
+        {
+            var id = await RegisterAsync(password, name, email, address, phone, country, language);
+            return id.HasValue && id.Value > 0;
+        }
+
         // ---------- LOGIN ----------
         public async Task<string?> LoginAsync(string email, string password)
         {
@@ -75,8 +86,6 @@ namespace Danplanner.Client.Services
 
             return _token;
         }
-
-
 
         // ---------- GET USERS ----------
         public async Task<List<UserDto>> GetUsersAsync()
@@ -111,5 +120,4 @@ namespace Danplanner.Client.Services
         [JsonPropertyName("token")]
         public string Token { get; set; } = string.Empty;
     }
-
 }
