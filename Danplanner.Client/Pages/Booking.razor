@@ -9,7 +9,7 @@
 @if(startDate is not null && endDate is not null){
     <GuestCounter GuestCountCallback="HandleGuestCountChanged"/>
 }
-
+<Discount/>
 @if(GuestCount is not null){
     <FieldPicker
         SelectedFieldNumberCallback="HandleFieldNumberChanged"
@@ -25,7 +25,7 @@
     <GrassFieldAddon AddonGrassFieldCallback="HandleSelectedGrassFieldAddonsChanged"/>
 }
 
-<Discount/>
+
 
 @code {
     @*Kalender booking*@
