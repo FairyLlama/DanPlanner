@@ -1,8 +1,10 @@
 ﻿@page "/"
 
+@rendermode InteractiveServer
+
 <!-- Fullscreen hero banner med vignette -->
 <div class="hero-banner d-flex flex-column align-items-center justify-content-center text-white text-center"
-     style="background: url('../img/COLOURBOX3663731.jpg') center/cover no-repeat; min-height: 62vh; position: relative;">
+     style="background: url(@(imgs[ImgIndex])) center/cover no-repeat; min-height: 62vh; position: relative;">
 
     <!-- Vignette overlay -->
     <div style="position:absolute; inset:0; background: radial-gradient(circle, rgba(0,0,0,0.4) 0%, rgba(0,0,0,0.2) 400%);"></div>
@@ -13,8 +15,11 @@
         <h3 class="fw-bold mb-3"><strong></strong>Din campingoplevelse i centrum</h3>
 
         <!-- Primære call-to-actions -->
-        
+
     </div>
+
+    <button @onclick="ImgDecrement" class="btn btn-transparent imgbtn left-align">@("<")</button>
+    <button @onclick="ImgIncrement"class="btn btn-transparent imgbtn right-align">@(">")</button>
 </div>
 
 <!-- Feature cards (runde kasser) -->
@@ -51,26 +56,40 @@
     </div>
 </div>
 
-
-<!-- Custom CSS -->
 <style>
-    /* Hover-effekt på feature cards */
-    .feature-card {
-        transition: all 0.3s ease-in-out;
+    .imgbtn{
+        position: absolute; 
+        height: 100%; 
+        width: 6%; 
+        color: #fff; 
+        font-size: 70pt; 
+        font-family: cursive
+}
+    .right-align{
+        right: 0px;
     }
 
-        .feature-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 1rem 1.5rem rgba(0,0,0,0.2);
-        }
-
-    /* Hover-effekt på små knapper */
-    .hover-btn {
-        transition: all 0.2s ease-in-out;
+    .left-align{
+        left: 0px;
     }
-
-        .hover-btn:hover {
-            background-color: #f8f9fa;
-            transform: translateY(-2px);
-        }
 </style>
+
+@code{
+    private List<string> imgs = [
+        "../img/COLOURBOX3663731.jpg", 
+        "../img/COLOURBOX8622293.jpg",
+        "../img/COLOURBOX17620185.jpg",
+        "../img/COLOURBOX29034107.jpg"];
+
+    private int ImgIndex = 0;
+    private void ImgDecrement(){
+        ImgIndex--;
+        if(ImgIndex<0)
+            ImgIndex = imgs.Count-1;
+    }
+    private void ImgIncrement(){
+        ImgIndex++;
+        if(ImgIndex>imgs.Count-1)
+            ImgIndex = 0;
+    }
+}
