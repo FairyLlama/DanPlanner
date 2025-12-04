@@ -2,21 +2,18 @@
 
 <!-- Fullscreen hero banner med vignette -->
 <div class="hero-banner d-flex flex-column align-items-center justify-content-center text-white text-center"
-     style="background: url('') center/cover no-repeat; min-height: 100vh; position: relative;">
+     style="background: url('../img/COLOURBOX3663731.jpg') center/cover no-repeat; min-height: 62vh; position: relative;">
 
     <!-- Vignette overlay -->
-    <div style="position:absolute; inset:0; background: radial-gradient(circle, rgba(0,0,0,0.4) 0%, rgba(0,0,0,0.8) 100%);"></div>
+    <div style="position:absolute; inset:0; background: radial-gradient(circle, rgba(0,0,0,0.4) 0%, rgba(0,0,0,0.2) 400%);"></div>
 
     <!-- Content ovenpå -->
-    <div style="position:relative; z-index:1;" class="container">
-        <h1 class="fw-bold mb-3">Velkommen til Danplanner</h1>
-        <p class="lead mb-4">Din digitale løsning til camping livsstilen!</p>
+    <div style="position:relative; z-index:1; margin-bottom: 8vh" class="container">
+        <h1 class="fw-bold mb-3"> <strong>Velkommen til Danplanner</strong></h1>
+        <h3 class="fw-bold mb-3"><strong></strong>Din campingoplevelse i centrum</h3>
 
         <!-- Primære call-to-actions -->
-        <div class="d-flex justify-content-center gap-3 mt-3">
-            <a href="/register" class="btn btn-outline-light shadow px-4">Opret bruger</a>
-            <a href="/login" class="btn btn-outline-light shadow px-4">Log ind</a>
-        </div>
+        
     </div>
 </div>
 
@@ -24,31 +21,30 @@
 <div class="container my-5">
     <div class="row g-4">
         <div class="col-md-4">
-            <div class="card shadow-lg border-0 feature-card h-100">
-                <div class="card-body text-center d-flex flex-column align-items-center justify-content-between">
-                    <h4 class="card-title">🏕 Booking & produkter</h4>
+            <div class="card border-0 h-100">
+                <div class="card-body text-center flex-column align-items-center justify-content-between">
+                    <h4 class="card-title"><strong>Book dit ophold</strong></h4>
                     <a href="/booking" class="btn btn-outline-primary px-3 mt-3 w-75">Gå til booking</a>
                 </div>
             </div>
         </div>
 
         <div class="col-md-4">
-            <div class="card shadow-lg border-0 feature-card h-100">
+            <div class="card border-0 h-100">
                 <div class="card-body text-center d-flex flex-column align-items-center justify-content-between">
-                    <h4 class="card-title">📋 Administrer</h4>
-                    <a href="/reservations" class="btn btn-outline-secondary px-3 mt-3 w-75">Se dine reservationer</a>
+                    <h4 class="card-title"><strong>Login</strong></h4>
+                    <a href="/register" class="btn btn-outline-secondary px-3 mt-3 w-75">Opret bruger</a>
+                    <a href="/login" class="btn btn-outline-secondary px-3 mt-3 w-75">Log ind</a>
                 </div>
             </div>
-        </div>
+        </div> 
 
         <div class="col-md-4">
-            <div class="card shadow-lg border-0 feature-card h-100">
+            <div class="card border-0 h-100">
                 <div class="card-body text-center d-flex flex-column align-items-center justify-content-between">
-                    <h4 class="card-title">ℹ️ Praktiske oplysninger</h4>
-                    <div class="d-flex justify-content-center gap-2 mt-3 w-100">
-                        <a href="/camping" class="btn btn-outline-success px-2 py-1 flex-fill">Kontakt & info</a>
-                        <a href="/campingmap" class="btn btn-outline-success px-2 py-1 flex-fill">Campingpladsen</a>
-                    </div>
+                    <h4 class="card-title"><strong>Praktiske oplysninger</strong></h4>
+                        <a href="/camping" class="btn btn-outline-success px-3 mt-3 w-75">Kontakt & info</a>
+                        <a href="/campingmap" class="btn btn-outline-success px-3 mt-3 w-75">Oversigt over campingpladsen</a>
                 </div>
             </div>
         </div>
