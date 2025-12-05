@@ -1,4 +1,5 @@
-﻿@page "/AdminBooking"
+﻿@page "/admin-booking"
+@rendermode InteractiveServer
 @using Danplanner.Shared.Models
 @using Danplanner.Client.Services
 @inject ICottageService CottageService
@@ -7,9 +8,7 @@
 @inject IBookingService BookingService
 @inject IAddonService AddonService
 @inject Authservice AuthService
-@inject NavigationManager NavManager
 @inject IJSRuntime JS
-@rendermode InteractiveServer
 
 <h3>Admin Booking</h3>
 

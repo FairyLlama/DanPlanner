@@ -76,8 +76,6 @@ builder.Services.AddScoped<IReceiptService, ReceiptService>();
 
 
 builder.Services.AddScoped<CampingSiteSeeder>();
-builder.Services.AddScoped<BookingSeeder>();
-
 
 
 // Antiforgery setup
@@ -98,8 +96,7 @@ using (var scope = app.Services.CreateScope())
 
 using (var scope = app.Services.CreateScope())
 {
-    var seeder = scope.ServiceProvider.GetRequiredService<BookingSeeder>();
-    await seeder.SeedAsync();
+
 }
 
 // Map controllers

@@ -1,259 +1,129 @@
 ﻿@page "/booking"
-
+@rendermode InteractiveServer
+@using System.Runtime.CompilerServices
 @using Danplanner.Shared.Models
-@using Danplanner.Client.Services
+@using Danplanner.Client.Components
+@inject IBookingService BookingService
 @inject ICottageService CottageService
 @inject IGrassFieldService GrassFieldService
-@inject IProductService ProductService
-@inject IBookingService BookingService
 @inject IAddonService AddonService
-@inject NavigationManager NavManager
-@rendermode InteractiveServer
 
-<h3>Opret Booking</h3>
+<DatePicker StartDateChanged="HandleStartDateChange" EndDateChanged="HandleEndDateChange"/>
+<Discount/>
 
-<EditForm Model="_dto" OnValidSubmit="HandleBooking" FormName="BookingForm">
-    <DataAnnotationsValidator />
-    <ValidationSummary />
-
-    <div>
-        <label>Startdato:</label>
-        <InputDate @bind-Value="_dto.StartDate" />
-    </div>
-
-    <div>
-        <label>Slutdato:</label>
-        <InputDate @bind-Value="_dto.EndDate" />
-    </div>
-
-    <div>
-        <label>Produkt:</label>
-        <InputSelect TValue="int" @bind-Value="ProductId">
-            <option value="0">-- vælg produkt --</option>
-            @foreach (var p in _products)
-            {
-                <option value="@p.Id">@TranslateType(p.ProductType)</option>
-            }
-        </InputSelect>
-    </div>
-
-    <div>
-        <label>Antal personer:</label>
-        <InputNumber @bind-Value="_dto.NumberOfPeople" />
-    </div>
-
-    @if (_selectedProduct?.ProductType == ProductType.Cottage)
-    {
-        <div>
-            <label>Hytte:</label>
-            <InputSelect TValue="int?" @bind-Value="_dto.CottageId">
-                <option value="@((int?)null)">-- vælg hytte --</option>
-                @foreach (var h in _cottages.Where(h => h.ProductId == _selectedProduct.Id))
-                {
-                    <option value="@h.Id">
-                        Hytte #@h.Number (Kapacitet: @h.MaxCapacity, Pris: @h.PricePerNight kr./nat)
-                    </option>
-                }
-            </InputSelect>
-        </div>
-    }
-    else if (_selectedProduct?.ProductType == ProductType.GrassField)
-    {
-        <div>
-            <label>Græsplads:</label>
-            <InputSelect TValue="int?" @bind-Value="_dto.GrassFieldId">
-                <option value="@((int?)null)">-- vælg græsplads --</option>
-                @foreach (var g in _grassFields.Where(g => g.ProductId == _selectedProduct.Id))
-                {
-                    <option value="@g.Id">
-                        Plads #@g.Number (Størrelse: @g.Size, Pris: @g.PricePerNight kr./nat)
-                    </option>
-                }
-            </InputSelect>
-        </div>
-    }
-
-    @if (_addons.Any())
-    {
-        <div>
-            <label>Tilkøb:</label>
-            @foreach (var a in _addons)
-            {
-                <div style="margin-bottom:6px">
-                    <input type="checkbox"
-                           checked="@_selectedAddonIds.Contains(a.Id)"
-                           @onchange="(ChangeEventArgs e) => ToggleAddon(a.Id, e)" />
-                    @a.Name (@a.Price kr.)
-
-                    <input type="number" min="1"
-                           value="@GetQuantity(a.Id)"
-                           @onchange="(ChangeEventArgs e) => SetQuantity(a.Id, ParseInt(e.Value))" />
-                </div>
-            }
-        </div>
-    }
-
-    <button type="submit">Book</button>
-</EditForm>
-
-@if (!string.IsNullOrEmpty(_error))
-{
-    <p style="color:red">@_error</p>
+@if(startDate is not null && endDate is not null){
+    <GuestCounter GuestCountCallback="HandleGuestCountChanged"/>
 }
+
+@if(GuestCount is not null){
+    <FieldPicker
+        SelectedFieldNumberCallback="HandleFieldNumberChanged"
+        SelectedFieldCallback="HandleFieldTypeChanged"
+        GuestAmount="GuestCount"/>
+}
+
+@if(FieldType == ProductType.Cottage){
+    <CottageAddon AddonCottageCallback="HandleSelectedCottageAddonsChanged"/>
+}
+
+@if(FieldType == ProductType.GrassField){
+    <GrassFieldAddon AddonGrassFieldCallback="HandleSelectedGrassFieldAddonsChanged"/>
+}
+
+<button type="submit" class="btn btn-success mt-4" style="transform: translate(1300px, -62px); position: absolute" @onclick=HandleConfirmBooking>Bekr&#230;ft k&#248;b</button>
+
 
 @code {
-    private BookingDto _dto = new()
+    @*Kalender booking*@
+    private DateTime? startDate;
+    private DateTime? endDate;
+
+    private void HandleStartDateChange(DateTime? date)
     {
-        StartDate = DateTime.Today,
-        EndDate = DateTime.Today.AddDays(1),
-        ProductId = 0,
-        CottageId = null,
-        GrassFieldId = null,
-        NumberOfPeople = 1,
-        BookingAddons = new List<BookingAddonDto>()
-    };
-
-    private BookingDto? _created;
-    private List<ProductDto> _products = new();
-    private List<CottageDto> _cottages = new();
-    private List<GrassFieldDto> _grassFields = new();
-    private List<AddonDto> _addons = new();
-
-    private HashSet<int> _selectedAddonIds = new();
-    private Dictionary<int, int> _addonQuantities = new();
-
-    private ProductDto? _selectedProduct;
-    private string _error = string.Empty;
-
-    private int ProductId
-    {
-        get => _dto.ProductId;
-        set
-        {
-            _dto.ProductId = value;
-            _selectedProduct = _products.FirstOrDefault(p => p.Id == value);
-
-            if (_selectedProduct?.ProductType == ProductType.Cottage)
-            {
-                _dto.GrassFieldId = null;
-            }
-            else if (_selectedProduct?.ProductType == ProductType.GrassField)
-            {
-                _dto.CottageId = null;
-            }
-            else
-            {
-                _dto.CottageId = null;
-                _dto.GrassFieldId = null;
-            }
-
-            StateHasChanged();
-        }
+        startDate = date;
     }
 
-    protected override async Task OnInitializedAsync()
+    private void HandleEndDateChange(DateTime? date)
     {
-        _products = await ProductService.GetAllAsync();
-        _cottages = await CottageService.GetAllAsync();
-        _grassFields = await GrassFieldService.GetAllAsync();
-        _addons = await AddonService.GetAllAsync();
-
-        foreach (var addon in _addons)
-        {
-            if (!_addonQuantities.ContainsKey(addon.Id))
-                _addonQuantities[addon.Id] = 1;
-        }
+        endDate = date;
     }
 
-    private void ToggleAddon(int addonId, ChangeEventArgs e)
+    
+    @*Antal gæster*@
+    private int? GuestCount;
+    private void HandleGuestCountChanged(int? count)
     {
-        var isChecked = bool.TryParse(e.Value?.ToString(), out var b) && b;
-        if (isChecked)
-            _selectedAddonIds.Add(addonId);
-        else
-            _selectedAddonIds.Remove(addonId);
+        GuestCount = count;
     }
 
-    private int GetQuantity(int id) =>
-        _addonQuantities.TryGetValue(id, out var q) ? Math.Max(q, 1) : 1;
-
-    private void SetQuantity(int id, int q) =>
-        _addonQuantities[id] = Math.Max(q, 1);
-
-    private static int ParseInt(object? value)
+    @*Pladser*@
+    @*Græs eller hytteplads*@
+    private ProductType? FieldType;
+    private void HandleFieldTypeChanged(ProductType? field)
     {
-        var s = value?.ToString();
-        return int.TryParse(s, out var n) ? n : 1;
+        FieldType = field;
     }
 
-    private async Task HandleBooking()
+    @*Plads nummer på kort*@
+    private int? FieldNumber;
+    private void HandleFieldNumberChanged(int? fieldnumber)
     {
-        _error = string.Empty;
-
-        if (_dto.ProductId == 0)
-        {
-            _error = "Du skal vælge et produkt.";
-            return;
-        }
-
-        var isHytte = _selectedProduct?.ProductType == ProductType.Cottage;
-        var isGræs = _selectedProduct?.ProductType == ProductType.GrassField;
-
-        if (isHytte)
-        {
-            if (_dto.CottageId is null)
-            {
-                _error = "Du skal vælge en hytte.";
-                return;
-            }
-
-            var cottage = _cottages.FirstOrDefault(c => c.Id == _dto.CottageId);
-            if (cottage != null && _dto.NumberOfPeople > cottage.MaxCapacity)
-            {
-                _error = $"Der er kun plads til {cottage.MaxCapacity} personer i denne hytte.";
-                return;
-            }
-
-            _dto.GrassFieldId = null;
-        }
-        else if (isGræs)
-        {
-            if (_dto.GrassFieldId is null)
-            {
-                _error = "Du skal vælge en græsplads.";
-                return;
-            }
-            _dto.CottageId = null;
-        }
-        else
-        {
-            _dto.CottageId = null;
-            _dto.GrassFieldId = null;
-        }
-
-        _dto.BookingAddons = _selectedAddonIds
-            .Select(id => new BookingAddonDto
-            {
-                AddonId = id,
-                Quantity = GetQuantity(id)
-            })
-            .ToList();
-
-        _dto.Status = "Afventer";
-
-        _created = await BookingService.CreateAsync(_dto);
-
-        if (_created is not null)
-        {
-            NavManager.NavigateTo($"/booking-user/{_created.Id}");
-        }
+        FieldNumber = fieldnumber;
     }
 
-    // Hjælpemetode til at oversætte enum til dansk
-    private static string TranslateType(ProductType type) => type switch
+    @*Hytte tilkøb*@
+    private AddonDto? SelectedCottageAddons;
+    private void HandleSelectedCottageAddonsChanged(AddonDto? addon)
     {
-        ProductType.Cottage => "Hytte",
-        ProductType.GrassField => "Græsplads",
-        _ => type.ToString()
-    };
+        SelectedCottageAddons = addon;
+    }
+
+    @*Græsplads tilkøb*@
+    private AddonDto? SelectedGrassFieldAddons;
+    private void HandleSelectedGrassFieldAddonsChanged(AddonDto? addon)
+    {
+        SelectedGrassFieldAddons = addon;
+    }
+
+    private async Task HandleConfirmBooking()
+    {
+        decimal? totalPrice = 0.0m;
+        int? cottageId = null;
+        int? grassFieldId = null;
+        if (FieldType == ProductType.Cottage)
+        {
+            var allCottages = await CottageService.GetAllAsync();
+            var cottage = allCottages.FirstOrDefault(c => c.Number == FieldNumber);
+            cottageId = cottage?.Id;
+            totalPrice = cottage?.PricePerNight + GuestCount * 400 + SelectedCottageAddons?.Price;
+        }
+        else if (FieldType == ProductType.GrassField)
+        {
+            var allGrassFields = await GrassFieldService.GetAllAsync();
+            var grassField = allGrassFields.FirstOrDefault(gf => gf.Number == FieldNumber);
+            grassFieldId = grassField?.Id;
+            totalPrice = grassField?.PricePerNight + GuestCount * 200 + SelectedGrassFieldAddons?.Price;
+        }
+
+        @* var allAddons = await AddonService.GetAllAsync(); *@
+
+        await BookingService.CreateAsync(new BookingDto{
+            StartDate = startDate.GetValueOrDefault(),
+            EndDate = endDate.GetValueOrDefault(),
+            NumberOfPeople = GuestCount.GetValueOrDefault(),
+            ProductId = FieldType == ProductType.Cottage ? 12 : 11,
+            CottageId = cottageId ?? null,
+            GrassFieldId = grassFieldId ?? null,
+            TotalPrice = totalPrice.GetValueOrDefault(),
+            BookingAddons = new List<BookingAddonDto>(),
+            @* BookingAddons = new List<BookingAddonDto>{
+                new BookingAddonDto{
+                    Price = totalPrice.GetValueOrDefault(),
+                    Quantity = 1,
+                    AddonId = 
+                }
+            }, *@
+        });
+    }
 }
+

@@ -1,0 +1,45 @@
+@rendermode InteractiveServer
+@using System.Runtime.CompilerServices
+@using Danplanner.Shared.Models
+
+
+<div class="d-flex justify-content-center">
+<h3><strong>V&#230;lg dato for dit ophold</strong></h3>
+</div>
+<div class="d-flex justify-content-center">
+    <label class="with-margin">
+        Start dato<br/>
+        <InputDate @bind-Value="@StartDate" @onfocusout="async (e) => await StartDateChanged.InvokeAsync(StartDate)" />
+    </label>
+    <label class="with-margin">
+        Slut dato<br/>
+        <InputDate @bind-Value="@EndDate" @onfocusout="async (e) => await EndDateChanged.InvokeAsync(EndDate)" />
+    </label>
+</div>
+
+<div class="content-grid">
+    @if (StartDate != null)
+    {
+        <p class="right-aligned with-margin">Ophold fra @(ChangeDate(StartDate))</p>
+    }
+    @if (EndDate != null)
+    {
+        <p class="with-margin">til @(ChangeDate(EndDate))</p>
+    }
+</div>
+
+@code {
+    [Parameter]
+    public EventCallback<DateTime?> StartDateChanged { get; set; }
+    private DateTime? StartDate { get; set; }
+
+    [Parameter]
+    public EventCallback<DateTime?> EndDateChanged { get; set; }
+    private DateTime? EndDate { get; set; }
+    
+
+    private string ChangeDate(DateTime? date)
+    {
+        return date != null ? DateOnly.FromDateTime(date.GetValueOrDefault()).ToString() : "";
+    }
+}
