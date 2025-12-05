@@ -16,6 +16,9 @@
              Task<BookingDto?> UpdateAsync(BookingDto dto);
 
 
+            Task DeleteAsync(int id);
+
+
     }
 
 }

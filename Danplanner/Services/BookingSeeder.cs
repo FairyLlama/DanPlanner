@@ -19,7 +19,6 @@ namespace Danplanner.Services
             // --- Products ---
             await EnsureProduct(ProductType.GrassField);
             await EnsureProduct(ProductType.Cottage);
-
             await _db.SaveChangesAsync();
 
             // --- Cottages ---
@@ -42,7 +41,6 @@ namespace Danplanner.Services
             await EnsureAddon("Slutrengøring", 300m);
             await EnsureAddon("Sengetøj", 75m);
             await EnsureAddon("Cykelleje", 150m);
-
             await _db.SaveChangesAsync();
 
             // --- Bookings (eksempeldata) ---
@@ -77,6 +75,12 @@ namespace Danplanner.Services
                         }
                     };
 
+                    // Beregn TotalPrice
+                    int nights = (bookingHytte.EndDate - bookingHytte.StartDate).Days;
+                    if (nights < 1) nights = 1;
+                    bookingHytte.TotalPrice = (cottage.PricePerNight * nights)
+                                              + bookingHytte.BookingAddons.Sum(ba => ba.Quantity * ba.Addons!.Price);
+
                     _db.Bookings.Add(bookingHytte);
                 }
 
@@ -104,6 +108,12 @@ namespace Danplanner.Services
                             Quantity = 1
                         }
                     };
+
+                    // Beregn TotalPrice
+                    int nights = (bookingGræs.EndDate - bookingGræs.StartDate).Days;
+                    if (nights < 1) nights = 1;
+                    bookingGræs.TotalPrice = (grassField.PricePerNight * nights)
+                                             + bookingGræs.BookingAddons.Sum(ba => ba.Quantity * ba.Addons!.Price);
 
                     _db.Bookings.Add(bookingGræs);
                 }

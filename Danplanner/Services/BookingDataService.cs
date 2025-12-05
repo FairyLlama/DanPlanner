@@ -317,5 +317,15 @@ namespace Danplanner.Services
             await _db.SaveChangesAsync();
             return true;
         }
+
+
+        public async Task DeleteAsync(int id)
+        {
+            var booking = await _db.Bookings.FindAsync(id);
+            if (booking == null)
+                throw new KeyNotFoundException("Booking ikke fundet");
+            _db.Bookings.Remove(booking);
+            await _db.SaveChangesAsync();
+        }
     }
 }
