@@ -1,5 +1,6 @@
 ﻿@page "/login"
 @inject Danplanner.Client.Services.Authservice Auth
+@inject NavigationManager NavManager
 @rendermode InteractiveServer
 @using System.ComponentModel.DataAnnotations
 
@@ -27,9 +28,9 @@
                         <button type="submit" class="btn btn-primary w-100">Login</button>
                     </EditForm>
 
-                    @if (!string.IsNullOrEmpty(message))
+                    @if (!string.IsNullOrEmpty(Auth.LastMessage))
                     {
-                        <div class="alert alert-info mt-3">@message</div>
+                        <div class="alert alert-info mt-3">@Auth.LastMessage</div>
                     }
 
                     <div class="text-center mt-3">
@@ -44,14 +45,13 @@
 
 @code {
     private LoginModel loginModel = new();
-    private string? message;
 
     private async Task HandleLogin()
     {
-
         var token = await Auth.LoginAsync(loginModel.Email, loginModel.Password);
-        message = token is not null ? "Login successful!" : "Login failed";
 
+        // 👇 Redirect til login-siden igen, så beskeden vises efter refresh
+        NavManager.NavigateTo("/login", forceLoad: true);
     }
 
     public class LoginModel

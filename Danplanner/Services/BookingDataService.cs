@@ -223,6 +223,89 @@ namespace Danplanner.Services
             };
         }
 
+
+        public async Task<BookingDto?> UpdateAsync(BookingDto dto)
+        {
+            var booking = await _db.Bookings
+                .Include(b => b.BookingAddons)
+                .FirstOrDefaultAsync(b => b.Id == dto.Id);
+
+            if (booking == null) return null;
+
+            // Opdater felter
+            booking.ProductId = dto.ProductId;
+            booking.CottageId = dto.CottageId;
+            booking.GrassFieldId = dto.GrassFieldId;
+            booking.StartDate = dto.StartDate;
+            booking.EndDate = dto.EndDate;
+            booking.NumberOfPeople = dto.NumberOfPeople;
+            booking.Status = dto.Status ?? booking.Status;
+
+            // Opdater tilkøb
+            booking.BookingAddons.Clear();
+            if (dto.BookingAddons != null && dto.BookingAddons.Any())
+            {
+                foreach (var ba in dto.BookingAddons)
+                {
+                    var addonEntity = await _db.Addons.FindAsync(ba.AddonId)
+                                      ?? throw new InvalidOperationException($"Addon {ba.AddonId} findes ikke");
+
+                    booking.BookingAddons.Add(new BookingAddon
+                    {
+                        BookingId = booking.Id,
+                        AddonId = ba.AddonId,
+                        Quantity = ba.Quantity,
+                        Price = addonEntity.Price,
+                        Addons = addonEntity
+                    });
+                }
+            }
+
+            // Beregn pris igen
+            var days = (dto.EndDate - dto.StartDate).Days;
+            if (days <= 0) days = 1;
+
+            decimal basePrice = 0m;
+            if (dto.CottageId.HasValue)
+            {
+                var cottage = await _db.Cottages.FindAsync(dto.CottageId.Value);
+                if (cottage != null) basePrice = cottage.PricePerNight * days;
+            }
+            else if (dto.GrassFieldId.HasValue)
+            {
+                var grass = await _db.GrassFields.FindAsync(dto.GrassFieldId.Value);
+                if (grass != null) basePrice = grass.PricePerNight * days;
+            }
+
+            decimal addonsPrice = booking.BookingAddons.Sum(a => a.Price * a.Quantity);
+            booking.TotalPrice = basePrice + addonsPrice;
+
+            await _db.SaveChangesAsync();
+
+            // Returnér DTO
+            return new BookingDto
+            {
+                Id = booking.Id,
+                UserId = booking.UserId,
+                ProductId = booking.ProductId,
+                CottageId = booking.CottageId,
+                GrassFieldId = booking.GrassFieldId,
+                Status = booking.Status,
+                StartDate = booking.StartDate,
+                EndDate = booking.EndDate,
+                NumberOfPeople = booking.NumberOfPeople,
+                TotalPrice = booking.TotalPrice,
+                BookingAddons = booking.BookingAddons.Select(ba => new BookingAddonDto
+                {
+                    Id = ba.Id,
+                    BookingId = ba.BookingId,
+                    AddonId = ba.AddonId,
+                    Quantity = ba.Quantity,
+                    Price = ba.Price
+                }).ToList()
+            };
+        }
+
         public async Task<bool> ConfirmAsync(int bookingId, int userId)
         {
             var booking = await _db.Bookings.FirstOrDefaultAsync(b => b.Id == bookingId);
