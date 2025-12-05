@@ -47,5 +47,49 @@ namespace Danplanner.Services
                 }
             };
         }
+
+        // CREATE
+        public async Task<GrassFieldDto> CreateAsync(GrassFieldDto dto)
+        {
+            var entity = new GrassField
+            {
+                ProductId = dto.ProductId,
+                Size = dto.Size,
+                Number = dto.Number,
+                PricePerNight = dto.PricePerNight,
+                Product = await _db.Products.FindAsync(dto.ProductId)
+            };
+
+            _db.GrassFields.Add(entity);
+            await _db.SaveChangesAsync();
+
+            dto.Id = entity.Id;
+            return dto;
+        }
+
+        // UPDATE
+        public async Task<GrassFieldDto> UpdateAsync(int id, GrassFieldDto dto)
+        {
+            var entity = await _db.GrassFields.FindAsync(id);
+            if (entity is null) throw new KeyNotFoundException($"GrassField {id} not found");
+
+            entity.ProductId = dto.ProductId;
+            entity.Size = dto.Size;
+            entity.Number = dto.Number;
+            entity.PricePerNight = dto.PricePerNight;
+
+            await _db.SaveChangesAsync();
+            return dto;
+        }
+
+        // DELETE
+        public async Task DeleteAsync(int id)
+        {
+            var entity = await _db.GrassFields.FindAsync(id);
+            if (entity is null) throw new KeyNotFoundException($"GrassField {id} not found");
+
+            _db.GrassFields.Remove(entity);
+            await _db.SaveChangesAsync();
+        }
     }
 }

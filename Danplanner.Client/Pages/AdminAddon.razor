@@ -1,0 +1,166 @@
+﻿@page "/admin-addons"
+@rendermode InteractiveServer
+@using Danplanner.Shared.Models
+@using Danplanner.Client.Services
+@inject IAddonService AddonService
+@inject Authservice AuthService
+
+<h3>Tilkøb</h3>
+
+@if (addons is null)
+{
+    <p>Henter tilkøb...</p>
+}
+else if (!addons.Any())
+{
+    <p>Der er ingen tilkøb endnu.</p>
+}
+else
+{
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Navn</th>
+                <th>Pris</th>
+                @if (IsAdmin)
+                {
+                    <th>Handlinger</th>
+                }
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var addon in addons)
+            {
+                <tr>
+                    <td>@addon.Name</td>
+                    <td>@addon.Price.ToString("0.00") kr.</td>
+
+                    @if (IsAdmin)
+                    {
+                        <td>
+                            <button class="btn btn-sm btn-primary me-1"
+                                    @onclick="() => StartEdit(addon)">
+                                Rediger
+                            </button>
+                            <button class="btn btn-sm btn-danger"
+                                    @onclick="() => Delete(addon.Id)">
+                                Slet
+                            </button>
+                        </td>
+                    }
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@if (IsAdmin)
+{
+    <hr />
+    <h4>@(editingAddon.Id == 0 ? "Opret nyt tilkøb" : "Rediger tilkøb")</h4>
+
+    <EditForm Model="editingAddon" OnValidSubmit="SaveAddon">
+        <DataAnnotationsValidator />
+        <ValidationSummary />
+
+        <div class="mb-3">
+            <label class="form-label">Navn</label>
+            <InputText @bind-Value="editingAddon.Name" class="form-control" />
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label">Pris</label>
+            <InputNumber @bind-Value="editingAddon.Price" class="form-control" />
+        </div>
+
+        <button type="submit" class="btn btn-success me-2">Gem</button>
+
+        <button type="button"
+                class="btn btn-secondary"
+                @onclick="CancelEdit"
+                disabled="@(editingAddon.Id == 0)">
+            Annuller
+        </button>
+    </EditForm>
+}
+else
+{
+    <p><em>Log ind som admin for at oprette, redigere eller slette tilkøb.</em></p>
+}
+
+@code {
+    private List<AddonDto>? addons;
+    private AddonDto editingAddon = new();
+    private bool IsAdmin => AuthService.CurrentUser?.Role == "Admin";
+
+    protected override async Task OnInitializedAsync()
+    {
+        // Hent alle tilkøb fra API’et
+        addons = await AddonService.GetAllAsync();
+    }
+
+    private void StartEdit(AddonDto addon)
+    {
+        // Lav en kopi, så vi ikke redigerer direkte i listen
+        editingAddon = new AddonDto
+        {
+            Id = addon.Id,
+            Name = addon.Name,
+            Price = addon.Price
+        };
+    }
+
+    private void CancelEdit()
+    {
+        editingAddon = new AddonDto();
+    }
+
+    private async Task SaveAddon()
+    {
+        if (!IsAdmin)
+            return;
+
+        if (editingAddon.Id == 0)
+        {
+            // CREATE
+            var created = await AddonService.CreateAsync(editingAddon);
+            if (created != null)
+            {
+                addons ??= new List<AddonDto>();
+                addons.Add(created);
+            }
+        }
+        else
+        {
+            // UPDATE
+            await AddonService.UpdateAsync(editingAddon.Id, editingAddon);
+
+            var index = addons!.FindIndex(a => a.Id == editingAddon.Id);
+            if (index >= 0)
+            {
+                addons[index] = new AddonDto
+                {
+                    Id = editingAddon.Id,
+                    Name = editingAddon.Name,
+                    Price = editingAddon.Price
+                };
+            }
+        }
+
+        // Nulstil formularen
+        editingAddon = new AddonDto();
+    }
+
+    private async Task Delete(int id)
+    {
+        if (!IsAdmin)
+            return;
+
+        await AddonService.DeleteAsync(id);
+        addons?.RemoveAll(a => a.Id == id);
+
+        // Hvis man var i gang med at redigere den, ryd formular
+        if (editingAddon.Id == id)
+            editingAddon = new AddonDto();
+    }
+}

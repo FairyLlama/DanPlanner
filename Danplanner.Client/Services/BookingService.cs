@@ -29,6 +29,16 @@ namespace Danplanner.Client.Services
             var resp = await _http.PutAsJsonAsync($"api/booking/{bookingId}/confirm", userId);
             return resp.IsSuccessStatusCode;
         }
+
+        // update booking
+
+        public async Task<BookingDto?> UpdateAsync(int id, BookingDto dto)
+        {
+            var resp = await _http.PutAsJsonAsync($"api/booking/{id}", dto);
+            return resp.IsSuccessStatusCode
+                ? await resp.Content.ReadFromJsonAsync<BookingDto>()
+                : null;
+        }
     }
 
 

@@ -4,18 +4,15 @@
 @using BlazorCalendar.Models
 @inject IBookingService BookingService
 
+
 <link href="_content/BlazorCalendar/BlazorCalendar.css" rel="stylesheet" />
-<select @bind="@SelectedView" >
+
 <div class="d-flex flex-row mb-2">
 <input type="date" class="me-2" value="@(today.ToString("yyyy-MM-dd"))" @onchange="@(e => ChangeFirstDate(e.Value.ToString()))" />
     <button @onclick="@(() => SwitchMonth(-1))" class="btn">@("<")</button>
     <button @onclick="@(() => SwitchMonth(1))" class="btn me-2">@(">")</button>
 </div>
-<CalendarContainer FirstDate="today" DisplayedView="DisplayedView.Monthly" TasksList="Bookings?.ToArray()">
-    <MonthlyView HighlightToday="true" />
-</CalendarContainer>
-
-
+<select @bind="@SelectedView" >
 	<option value="@DisplayedView.Monthly" selected>Måned</option>
 	<option value="@DisplayedView.Weekly">Uge</option>
 </select>
@@ -49,5 +46,8 @@
         retrieved.ForEach(booking => 
             Bookings.Add(new Tasks{ ID = booking.Id, DateStart = booking.StartDate, DateEnd = booking.EndDate, Code="Reserved", Color = "#aaa" })
         );
+    }
+    protected async override Task OnParametersSetAsync(){
+        await OnInitializedAsync();
     }
 }

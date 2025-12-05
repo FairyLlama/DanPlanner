@@ -47,5 +47,53 @@ namespace Danplanner.Services
                 }
             };
         }
+
+        // CREATE
+
+        public async Task<CottageDto> CreateAsync(CottageDto dto)
+        {
+            var entity = new Cottage
+            {
+                ProductId = dto.ProductId,
+                MaxCapacity = dto.MaxCapacity,
+                Number = dto.Number,
+                PricePerNight = dto.PricePerNight,
+                Product = await _db.Products.FindAsync(dto.ProductId)
+            };
+            _db.Cottages.Add(entity);
+            await _db.SaveChangesAsync();
+            dto.Id = entity.Id;
+            return dto;
+        }
+
+        // UPDATE
+
+        public async Task<CottageDto> UpdateAsync(int id, CottageDto dto)
+        {
+            var entity = await _db.Cottages.FindAsync(id);
+            if (entity is null)
+                throw new KeyNotFoundException($"Cottage with ID {id} not found.");
+
+            entity.ProductId = dto.ProductId;
+            entity.MaxCapacity = dto.MaxCapacity;
+            entity.Number = dto.Number;
+            entity.PricePerNight = dto.PricePerNight;
+
+            _db.Cottages.Update(entity);
+            await _db.SaveChangesAsync();
+
+            dto.Id = entity.Id;
+            return dto;
+        }
+
+        public async Task DeleteAsync(int id)
+        {
+            var entity = await _db.Cottages.FindAsync(id);
+            if (entity is null)
+                throw new KeyNotFoundException($"Cottage with ID {id} not found.");
+
+            _db.Cottages.Remove(entity);
+            await _db.SaveChangesAsync();
+        }
     }
 }
