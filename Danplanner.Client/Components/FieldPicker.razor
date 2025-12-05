@@ -47,12 +47,14 @@
     </div>
 }
 
-  <button type="button" class="btn btn-link p-0 text dark text-decoration-none" @onclick="ShowImage" style="color: black;">
-    <div class="d-flex justify-content-center">
-         <h3><strong>Klik her for at se de forskellige pladsnumre</strong></h3>
-    </div>
-</button> 
-   
+<div class="d-flex justify-content-around">
+    <button type="button" class="btn btn-link p-0 text dark text-decoration-none" @onclick="ShowImage" style="color: black;">
+        <div class="d-flex justify-content-center">
+            <h5><strong>Klik her for at se de forskellige pladsnumre</strong></h5>
+        </div>
+    </button> 
+</div>
+
 @if (imageSource is not null)
     {    
       <div class="d-flex justify-content-center">
@@ -60,7 +62,6 @@
      </div>
     }
    
-}
 
 @code {
     //Selection

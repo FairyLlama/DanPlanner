@@ -20,13 +20,14 @@
             </label>
         }
     </div>
+    
+<button type="submit" class="btn btn-success mt-4" style="transform: translateX(750px)" @onclick="AddonGrassFieldChanged">Tilf&#248;j tilk&#248;b</button>
 
-    <button type="submit" class="btn btn-success mt-4" @onclick="AddonGrassFieldChanged">Bekr&#230;ft tilk&#248;b</button>
 </EditForm>
 
 @if (_confirmed)
 {
-    <div class="alert alert-success mt-4">
+    <div class="alert alert-success mt-4" style="transform: translateX(50%); max-width: 50%">
         <h5>Tilk&#248;b bekr&#230;ftet</h5>
         <p>
             Valgte tilk&#248;b: @string.Join(", ", _addons.Where(a => a.Selected).Select(a => a.Name)) <br />

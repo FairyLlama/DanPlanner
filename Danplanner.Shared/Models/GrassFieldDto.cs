@@ -17,8 +17,6 @@ namespace Danplanner.Shared.Models
         public decimal PricePerNight { get; set; }
 
         public ProductDto? Product { get; set; }
-
-
     }
 
 }

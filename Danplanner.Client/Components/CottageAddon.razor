@@ -21,7 +21,8 @@
         }
     </div>
 
-    <button type="submit" class="btn btn-success mt-4" style="transform: translateX(500%)" @onclick="AddonCottageChanged">Bekr&#230;ft tilk&#248;b</button>
+<button type="submit" class="btn btn-success mt-4" style="transform: translateX(750px)" @onclick="AddonCottageChanged">Tilf&#248;j tilk&#248;b</button>
+
 </EditForm>
 
 @if (_confirmed)
@@ -41,17 +42,17 @@
 
     // 9 realistiske tilkøb med priser
     private List<AddonOption> _addons = new()
-{
-    new AddonOption { Name = "Slutrengøring", Price = 250m },
-    new AddonOption { Name = "Sengetøj & håndklæder", Price = 120m },
-    new AddonOption { Name = "Hund", Price = 75m },
-    new AddonOption { Name = "Wi-Fi adgang", Price = 50m },
-    new AddonOption { Name = "Barneseng", Price = 150m },
-    new AddonOption { Name = "Højstol til børn", Price = 50m },
-    new AddonOption { Name = "Grilludlejning", Price = 100m },
-    new AddonOption { Name = "Sen check‑out", Price = 250m },
-    new AddonOption { Name = "Brænde til pejs/ovn", Price = 80m }
-};
+    {
+        new AddonOption { Name = "Slutrengøring", Price = 250m },
+        new AddonOption { Name = "Sengetøj & håndklæder", Price = 120m },
+        new AddonOption { Name = "Hund", Price = 75m },
+        new AddonOption { Name = "Wi-Fi adgang", Price = 50m },
+        new AddonOption { Name = "Barneseng", Price = 150m },
+        new AddonOption { Name = "Højstol til børn", Price = 50m },
+        new AddonOption { Name = "Grilludlejning", Price = 100m },
+        new AddonOption { Name = "Sen check‑out", Price = 250m },
+        new AddonOption { Name = "Brænde til pejs/ovn", Price = 80m }
+    };
 
     private void ConfirmAddons()
     {

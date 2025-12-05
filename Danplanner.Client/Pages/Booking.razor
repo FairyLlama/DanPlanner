@@ -1,9 +1,12 @@
-@page "/booking"
+﻿@page "/booking"
 @rendermode InteractiveServer
 @using System.Runtime.CompilerServices
 @using Danplanner.Shared.Models
 @using Danplanner.Client.Components
 @inject IBookingService BookingService
+@inject ICottageService CottageService
+@inject IGrassFieldService GrassFieldService
+@inject IAddonService AddonService
 
 <DatePicker StartDateChanged="HandleStartDateChange" EndDateChanged="HandleEndDateChange"/>
 <Discount/>
@@ -27,53 +30,100 @@
     <GrassFieldAddon AddonGrassFieldCallback="HandleSelectedGrassFieldAddonsChanged"/>
 }
 
+<button type="submit" class="btn btn-success mt-4" style="transform: translate(1300px, -62px); position: absolute" @onclick=HandleConfirmBooking>Bekr&#230;ft k&#248;b</button>
 
 
 @code {
     @*Kalender booking*@
-    private DateOnly? startDate;
-    private DateOnly? endDate;
+    private DateTime? startDate;
+    private DateTime? endDate;
 
     private void HandleStartDateChange(DateTime? date)
     {
-        startDate = DateOnly.FromDateTime(date.GetValueOrDefault());
+        startDate = date;
     }
 
     private void HandleEndDateChange(DateTime? date)
     {
-        endDate = DateOnly.FromDateTime(date.GetValueOrDefault());
+        endDate = date;
     }
 
     
     @*Antal gæster*@
     private int? GuestCount;
-    private void HandleGuestCountChanged(int? count){
+    private void HandleGuestCountChanged(int? count)
+    {
         GuestCount = count;
     }
 
     @*Pladser*@
     @*Græs eller hytteplads*@
     private ProductType? FieldType;
-    private void HandleFieldTypeChanged(ProductType? field){
+    private void HandleFieldTypeChanged(ProductType? field)
+    {
         FieldType = field;
     }
 
     @*Plads nummer på kort*@
     private int? FieldNumber;
-    private void HandleFieldNumberChanged(int? fieldnumber){
+    private void HandleFieldNumberChanged(int? fieldnumber)
+    {
         FieldNumber = fieldnumber;
     }
 
     @*Hytte tilkøb*@
     private AddonDto? SelectedCottageAddons;
-    private void HandleSelectedCottageAddonsChanged(AddonDto? addon){
+    private void HandleSelectedCottageAddonsChanged(AddonDto? addon)
+    {
         SelectedCottageAddons = addon;
     }
 
     @*Græsplads tilkøb*@
     private AddonDto? SelectedGrassFieldAddons;
-    private void HandleSelectedGrassFieldAddonsChanged(AddonDto? addon){
+    private void HandleSelectedGrassFieldAddonsChanged(AddonDto? addon)
+    {
         SelectedGrassFieldAddons = addon;
+    }
+
+    private async Task HandleConfirmBooking()
+    {
+        decimal? totalPrice = 0.0m;
+        int? cottageId = null;
+        int? grassFieldId = null;
+        if (FieldType == ProductType.Cottage)
+        {
+            var allCottages = await CottageService.GetAllAsync();
+            var cottage = allCottages.FirstOrDefault(c => c.Number == FieldNumber);
+            cottageId = cottage?.Id;
+            totalPrice = cottage?.PricePerNight + GuestCount * 400 + SelectedCottageAddons?.Price;
+        }
+        else if (FieldType == ProductType.GrassField)
+        {
+            var allGrassFields = await GrassFieldService.GetAllAsync();
+            var grassField = allGrassFields.FirstOrDefault(gf => gf.Number == FieldNumber);
+            grassFieldId = grassField?.Id;
+            totalPrice = grassField?.PricePerNight + GuestCount * 200 + SelectedGrassFieldAddons?.Price;
+        }
+
+        @* var allAddons = await AddonService.GetAllAsync(); *@
+
+        await BookingService.CreateAsync(new BookingDto{
+            StartDate = startDate.GetValueOrDefault(),
+            EndDate = endDate.GetValueOrDefault(),
+            NumberOfPeople = GuestCount.GetValueOrDefault(),
+            ProductId = FieldType == ProductType.Cottage ? 12 : 11,
+            CottageId = cottageId ?? null,
+            GrassFieldId = grassFieldId ?? null,
+            TotalPrice = totalPrice.GetValueOrDefault(),
+            BookingAddons = new List<BookingAddonDto>(),
+            @* BookingAddons = new List<BookingAddonDto>{
+                new BookingAddonDto{
+                    Price = totalPrice.GetValueOrDefault(),
+                    Quantity = 1,
+                    AddonId = 
+                }
+            }, *@
+        });
     }
 }
 
