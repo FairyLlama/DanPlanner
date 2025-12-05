@@ -116,13 +116,14 @@ namespace Danplanner.Client.Services
         // ---------- GET USERS ----------
         public async Task<List<UserDto>> GetUsersAsync()
         {
-            if (string.IsNullOrEmpty(_token))
-                throw new InvalidOperationException("Ingen token – log ind først!");
-
             _http.DefaultRequestHeaders.Authorization =
                 new AuthenticationHeaderValue("Bearer", _token);
 
-            var users = await _http.GetFromJsonAsync<List<UserDto>>("auth/users", _jsonOptions);
+            var response = await _http.GetAsync("auth/users");
+            if (!response.IsSuccessStatusCode)
+                throw new UnauthorizedAccessException();
+
+            var users = await response.Content.ReadFromJsonAsync<List<UserDto>>(_jsonOptions);
             return users ?? new List<UserDto>();
         }
     }

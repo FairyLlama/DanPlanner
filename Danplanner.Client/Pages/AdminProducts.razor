@@ -1,0 +1,609 @@
+﻿@page "/AdminProducts"
+@using Danplanner.Shared.Models
+@inject ICottageService CottageService
+@inject IGrassFieldService GrassFieldService
+@inject IProductService ProductService
+@inject Authservice AuthService
+@inject NavigationManager NavManager
+@rendermode InteractiveServer
+
+<h3>Admin — Hytter og Græspladser</h3>
+
+@if (AuthService.CurrentUser?.Role != "Admin")
+{
+    <div class="alert alert-warning">
+        Du har ikke adgang til denne side.
+    </div>
+}
+else
+{
+    <div class="row">
+        <!-- Hytter -->
+        <div class="col-md-6">
+            <div class="mb-3">
+                <button class="btn btn-primary" @onclick="ShowCreateCottage">Opret ny hytte</button>
+            </div>
+
+            @if (IsCreatingCottage)
+            {
+                <div class="card mb-3 p-3">
+                    <h5>Opret hytte</h5>
+
+                    <div class="mb-2">
+                        <label class="form-label">Nummer</label>
+                        <input class="form-control" @bind="CottageEdit.Number" type="number" />
+                    </div>
+                    <div class="mb-2">
+                        <label class="form-label">Kapacitet</label>
+                        <input class="form-control" @bind="CottageEdit.MaxCapacity" type="number" />
+                    </div>
+                    <div class="mb-2">
+                        <label class="form-label">Pris pr. nat</label>
+                        <input class="form-control" @bind="CottagePriceString" />
+                    </div>
+                    <div class="mb-2">
+                        <label class="form-label">Produkt (Cottage)</label>
+                        <select class="form-select" @bind="CottageEdit.ProductId">
+                            <option value="">-- vælg produkt --</option>
+                            @foreach (var p in Products.Where(p => p.ProductType == ProductType.Cottage))
+                            {
+                                <option value="@p.Id">@p.ProductType (@p.Id)</option>
+                            }
+                        </select>
+                    </div>
+
+                    <div>
+                        <button class="btn btn-success me-2" @onclick="CreateCottage">Gem</button>
+                        <button class="btn btn-secondary" @onclick="CancelCottageCreate">Annuller</button>
+                    </div>
+                    @if (!string.IsNullOrEmpty(CottageFormError))
+                    {
+                        <div class="text-danger mt-2">@CottageFormError</div>
+                    }
+                </div>
+            }
+
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>Nummer</th>
+                        <th>Kapacitet</th>
+                        <th>Pris pr. nat</th>
+                        <th style="width:260px;"></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (Cottages is null)
+                    {
+                        <tr><td colspan="4">Indlæser…</td></tr>
+                    }
+                    else if (!Cottages.Any())
+                    {
+                        <tr><td colspan="4">Ingen hytter fundet.</td></tr>
+                    }
+                    else
+                    {
+                        @foreach (var h in Cottages)
+                        {
+                            var isEditing = CottageEditingId == h.Id;
+                            <tr>
+                                <td>
+                                    @if (isEditing)
+                                    {
+                                        <input class="form-control" @bind="CottageEdit.Number" type="number" />
+                                    }
+                                    else
+                                    {
+
+                                        @h.Number
+                                    }
+                                </td>
+                                <td>
+                                    @if (isEditing)
+                                    {
+                                        <input class="form-control" @bind="CottageEdit.MaxCapacity" type="number" />
+                                    }
+                                    else
+                                    {
+
+                                        @h.MaxCapacity
+                                    }
+                                </td>
+                                <td>
+                                    @if (isEditing)
+                                    {
+                                        <input class="form-control" @bind="CottagePriceString" />
+                                    }
+                                    else
+                                    {
+
+                                        @h.PricePerNight.ToString("0.00")
+                                    }
+                                </td>
+                                <td>
+                                    @if (isEditing)
+                                    {
+                                        <div class="d-flex gap-2">
+                                            <select class="form-select form-select-sm" style="max-width:180px" @bind="CottageEdit.ProductId">
+                                                <option value="">-- produkt --</option>
+                                                @foreach (var p in Products.Where(p => p.ProductType == ProductType.Cottage))
+                                                {
+                                                    <option value="@p.Id">@p.ProductType (@p.Id)</option>
+                                                }
+                                            </select>
+                                            <button class="btn btn-sm btn-success" @onclick="() => SaveCottageEdit(h.Id)">Gem</button>
+                                            <button class="btn btn-sm btn-secondary" @onclick="CancelCottageEdit">Annuller</button>
+                                        </div>
+                                        @if (!string.IsNullOrEmpty(CottageFormError))
+                                        {
+                                            <div class="text-danger mt-2">@CottageFormError</div>
+                                        }
+                                    }
+                                    else
+                                    {
+                                        <button class="btn btn-sm btn-outline-primary me-2" @onclick="() => BeginCottageEdit(h)">Rediger</button>
+                                        <button class="btn btn-sm btn-outline-danger" @onclick="() => ConfirmCottageDelete(h.Id, h.Number)">Slet</button>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    }
+                </tbody>
+            </table>
+
+            @if (ShowCottageDeleteConfirm)
+            {
+                <div class="card mt-3 p-3">
+                    <div>Er du sikker på at du vil slette hytte nummer: <strong>@CottageDeleteTargetName</strong> (Id: @CottageDeleteTargetId)?</div>
+                    <div class="mt-2">
+                        <button class="btn btn-danger me-2" @onclick="DeleteCottageConfirmed">Ja, slet</button>
+                        <button class="btn btn-secondary" @onclick="CancelCottageDelete">Nej</button>
+                    </div>
+                    @if (!string.IsNullOrEmpty(CottageFormError))
+                    {
+                        <div class="text-danger mt-2">@CottageFormError</div>
+                    }
+                </div>
+            }
+        </div>
+
+        <!-- Græspladser -->
+        <div class="col-md-6">
+            <div class="mb-3">
+                <button class="btn btn-primary" @onclick="ShowCreateGrass">Opret ny græsplads</button>
+            </div>
+
+            @if (IsCreatingGrass)
+            {
+                <div class="card mb-3 p-3">
+                    <h5>Opret græsplads</h5>
+
+                    <div class="mb-2">
+                        <label class="form-label">Nummer</label>
+                        <input class="form-control" @bind="GrassEdit.Number" type="number" />
+                    </div>
+                    <div class="mb-2">
+                        <label class="form-label">Størrelse</label>
+                        <input class="form-control" @bind="GrassEdit.Size" />
+                    </div>
+                    <div class="mb-2">
+                        <label class="form-label">Pris pr. nat</label>
+                        <input class="form-control" @bind="GrassPriceString" />
+                    </div>
+                    <div class="mb-2">
+                        <label class="form-label">Produkt (GrassField)</label>
+                        <select class="form-select" @bind="GrassEdit.ProductId">
+                            <option value="">-- vælg produkt --</option>
+                            @foreach (var p in Products.Where(p => p.ProductType == ProductType.GrassField))
+                            {
+                                <option value="@p.Id">@p.ProductType (@p.Id)</option>
+                            }
+                        </select>
+                    </div>
+
+                    <div>
+                        <button class="btn btn-success me-2" @onclick="CreateGrass">Gem</button>
+                        <button class="btn btn-secondary" @onclick="CancelGrassCreate">Annuller</button>
+                    </div>
+                    @if (!string.IsNullOrEmpty(GrassFormError))
+                    {
+                        <div class="text-danger mt-2">@GrassFormError</div>
+                    }
+                </div>
+            }
+
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>Nummer</th>
+                        <th>Størrelse</th>
+                        <th>Pris pr. nat</th>
+                        <th style="width:260px;"></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (GrassFields is null)
+                    {
+                        <tr><td colspan="4">Indlæser…</td></tr>
+                    }
+                    else if (!GrassFields.Any())
+                    {
+                        <tr><td colspan="4">Ingen græspladser fundet.</td></tr>
+                    }
+                    else
+                    {
+                        @foreach (var g in GrassFields)
+                        {
+                            var isEditing = GrassEditingId == g.Id;
+                            <tr>
+                                <td>
+                                    @if (isEditing)
+                                    {
+                                        <input class="form-control" @bind="GrassEdit.Number" type="number" />
+                                    }
+                                    else
+                                    {
+
+                                        @g.Number
+                                    }
+                                </td>
+                                <td>
+                                    @if (isEditing)
+                                    {
+                                        <input class="form-control" @bind="GrassEdit.Size" />
+                                    }
+                                    else
+                                    {
+
+                                        @g.Size
+                                    }
+                                </td>
+                                <td>
+                                    @if (isEditing)
+                                    {
+                                        <input class="form-control" @bind="GrassPriceString" />
+                                    }
+                                    else
+                                    {
+
+                                        @g.PricePerNight.ToString("0.00")
+                                    }
+                                </td>
+                                <td>
+                                    @if (isEditing)
+                                    {
+                                        <div class="d-flex gap-2">
+                                            <select class="form-select form-select-sm" style="max-width:180px" @bind="GrassEdit.ProductId">
+                                                <option value="">-- produkt --</option>
+                                                @foreach (var p in Products.Where(p => p.ProductType == ProductType.GrassField))
+                                                {
+                                                    <option value="@p.Id">@p.ProductType (@p.Id)</option>
+                                                }
+                                            </select>
+                                            <button class="btn btn-sm btn-success" @onclick="() => SaveGrassEdit(g.Id)">Gem</button>
+                                            <button class="btn btn-sm btn-secondary" @onclick="CancelGrassEdit">Annuller</button>
+                                        </div>
+                                        @if (!string.IsNullOrEmpty(GrassFormError))
+                                        {
+                                            <div class="text-danger mt-2">@GrassFormError</div>
+                                        }
+                                    }
+                                    else
+                                    {
+                                        <button class="btn btn-sm btn-outline-primary me-2" @onclick="() => BeginGrassEdit(g)">Rediger</button>
+                                        <button class="btn btn-sm btn-outline-danger" @onclick="() => ConfirmGrassDelete(g.Id, g.Number)">Slet</button>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    }
+                </tbody>
+            </table>
+
+            @if (ShowGrassDeleteConfirm)
+            {
+                <div class="card mt-3 p-3">
+                    <div>Er du sikker på at du vil slette græsplads nummer: <strong>@GrassDeleteTargetName</strong> (Id: @GrassDeleteTargetId)?</div>
+                    <div class="mt-2">
+                        <button class="btn btn-danger me-2" @onclick="DeleteGrassConfirmed">Ja, slet</button>
+                        <button class="btn btn-secondary" @onclick="CancelGrassDelete">Nej</button>
+                    </div>
+                    @if (!string.IsNullOrEmpty(GrassFormError))
+                    {
+                        <div class="text-danger mt-2">@GrassFormError</div>
+                    }
+                </div>
+            }
+        </div>
+    </div>
+}
+
+@code {
+    // Data
+    private List<CottageDto>? Cottages;
+    private List<GrassFieldDto>? GrassFields;
+    private List<ProductDto> Products = new();
+
+    // Cottage state
+    private CottageDto CottageEdit = new();
+    private int? CottageEditingId = null;
+    private bool IsCreatingCottage = false;
+    private string CottagePriceString = "";
+    private string CottageFormError = "";
+    private bool ShowCottageDeleteConfirm = false;
+    private int CottageDeleteTargetId;
+    private string CottageDeleteTargetName = "";
+
+    // Grass state
+    private GrassFieldDto GrassEdit = new();
+    private int? GrassEditingId = null;
+    private bool IsCreatingGrass = false;
+    private string GrassPriceString = "";
+    private string GrassFormError = "";
+    private bool ShowGrassDeleteConfirm = false;
+    private int GrassDeleteTargetId;
+    private string GrassDeleteTargetName = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        AuthService.OnUserChanged += () => InvokeAsync(StateHasChanged);
+        await LoadAll();
+    }
+
+    private async Task LoadAll()
+    {
+        try
+        {
+            Cottages = await CottageService.GetAllAsync();
+            GrassFields = await GrassFieldService.GetAllAsync();
+            Products = await ProductService.GetAllAsync();
+        }
+        catch (Exception ex)
+        {
+            CottageFormError = "Fejl ved indlæsning: " + ex.Message;
+            GrassFormError = "Fejl ved indlæsning: " + ex.Message;
+        }
+    }
+
+    // Cottage: create
+    private void ShowCreateCottage()
+    {
+        CottageFormError = "";
+        IsCreatingCottage = true;
+        CottageEditingId = null;
+        CottageEdit = new CottageDto();
+        CottagePriceString = "0.00";
+    }
+
+    private void CancelCottageCreate()
+    {
+        IsCreatingCottage = false;
+        CottageEdit = new CottageDto();
+        CottagePriceString = "";
+        CottageFormError = "";
+    }
+
+    private async Task CreateCottage()
+    {
+        CottageFormError = "";
+        if (CottageEdit.Number <= 0) { CottageFormError = "Nummer skal være > 0."; return; }
+        if (CottageEdit.MaxCapacity <= 0) { CottageFormError = "Kapacitet skal være > 0."; return; }
+        if (!decimal.TryParse(CottagePriceString, System.Globalization.NumberStyles.Number, System.Globalization.CultureInfo.InvariantCulture, out var price))
+        { CottageFormError = "Ugyldig pris."; return; }
+        if (CottageEdit.ProductId <= 0) { CottageFormError = "Vælg et gyldigt produkt."; return; }
+
+        CottageEdit.PricePerNight = price;
+
+        try
+        {
+            var created = await CottageService.CreateAsync(CottageEdit);
+            if (created is not null)
+            {
+                IsCreatingCottage = false;
+                await LoadAll();
+            }
+            else
+            {
+                CottageFormError = "Kunne ikke oprette hytte.";
+            }
+        }
+        catch (Exception ex)
+        {
+            CottageFormError = "Fejl ved oprettelse: " + ex.Message;
+        }
+    }
+
+    // Cottage: edit
+    private void BeginCottageEdit(CottageDto h)
+    {
+        CottageFormError = "";
+        CottageEditingId = h.Id;
+        CottageEdit = new CottageDto
+        {
+            Id = h.Id,
+            Number = h.Number,
+            MaxCapacity = h.MaxCapacity,
+            PricePerNight = h.PricePerNight,
+            ProductId = h.ProductId
+        };
+        CottagePriceString = h.PricePerNight.ToString(System.Globalization.CultureInfo.InvariantCulture);
+    }
+
+    private void CancelCottageEdit()
+    {
+        CottageEditingId = null;
+        CottageEdit = new CottageDto();
+        CottagePriceString = "";
+        CottageFormError = "";
+    }
+
+    private async Task SaveCottageEdit(int id)
+    {
+        CottageFormError = "";
+        if (CottageEdit.Number <= 0) { CottageFormError = "Nummer skal være > 0."; return; }
+        if (CottageEdit.MaxCapacity <= 0) { CottageFormError = "Kapacitet skal være > 0."; return; }
+        if (!decimal.TryParse(CottagePriceString, System.Globalization.NumberStyles.Number, System.Globalization.CultureInfo.InvariantCulture, out var price))
+        { CottageFormError = "Ugyldig pris."; return; }
+        if (CottageEdit.ProductId <= 0) { CottageFormError = "Vælg et gyldigt produkt."; return; }
+
+        CottageEdit.PricePerNight = price;
+
+        try
+        {
+            await CottageService.UpdateAsync(id, CottageEdit);
+            CottageEditingId = null;
+            await LoadAll();
+        }
+        catch (Exception ex)
+        {
+            CottageFormError = "Fejl ved opdatering: " + ex.Message;
+        }
+    }
+
+    // Cottage: delete
+    private void ConfirmCottageDelete(int id, int number)
+    {
+        CottageDeleteTargetId = id;
+        CottageDeleteTargetName = number.ToString();
+        ShowCottageDeleteConfirm = true;
+        CottageFormError = "";
+    }
+    private void CancelCottageDelete()
+    {
+        ShowCottageDeleteConfirm = false;
+        CottageDeleteTargetId = 0;
+        CottageDeleteTargetName = "";
+    }
+    private async Task DeleteCottageConfirmed()
+    {
+        try
+        {
+            await CottageService.DeleteAsync(CottageDeleteTargetId);
+            ShowCottageDeleteConfirm = false;
+            await LoadAll();
+        }
+        catch (Exception ex)
+        {
+            CottageFormError = "Fejl ved sletning: " + ex.Message;
+        }
+    }
+
+    // Grass: create
+    private void ShowCreateGrass()
+    {
+        GrassFormError = "";
+        IsCreatingGrass = true;
+        GrassEditingId = null;
+        GrassEdit = new GrassFieldDto();
+        GrassPriceString = "0.00";
+    }
+    private void CancelGrassCreate()
+    {
+        IsCreatingGrass = false;
+        GrassEdit = new GrassFieldDto();
+        GrassPriceString = "";
+        GrassFormError = "";
+    }
+    private async Task CreateGrass()
+    {
+        GrassFormError = "";
+        if (GrassEdit.Number <= 0) { GrassFormError = "Nummer skal være > 0."; return; }
+        if (string.IsNullOrWhiteSpace(GrassEdit.Size)) { GrassFormError = "Størrelse er påkrævet."; return; }
+        if (!decimal.TryParse(GrassPriceString, System.Globalization.NumberStyles.Number, System.Globalization.CultureInfo.InvariantCulture, out var price))
+        { GrassFormError = "Ugyldig pris."; return; }
+        if (GrassEdit.ProductId <= 0) { GrassFormError = "Vælg et gyldigt produkt."; return; }
+
+        GrassEdit.PricePerNight = price;
+
+        try
+        {
+            var created = await GrassFieldService.CreateAsync(GrassEdit);
+            if (created is not null)
+            {
+                IsCreatingGrass = false;
+                await LoadAll();
+            }
+            else
+            {
+                GrassFormError = "Kunne ikke oprette græsplads.";
+            }
+        }
+        catch (Exception ex)
+        {
+            GrassFormError = "Fejl ved oprettelse: " + ex.Message;
+        }
+    }
+
+    // Grass: edit
+    private void BeginGrassEdit(GrassFieldDto g)
+    {
+        GrassFormError = "";
+        GrassEditingId = g.Id;
+        GrassEdit = new GrassFieldDto
+        {
+            Id = g.Id,
+            Number = g.Number,
+            Size = g.Size,
+            PricePerNight = g.PricePerNight,
+            ProductId = g.ProductId
+        };
+        GrassPriceString = g.PricePerNight.ToString(System.Globalization.CultureInfo.InvariantCulture);
+    }
+    private void CancelGrassEdit()
+    {
+        GrassEditingId = null;
+        GrassEdit = new GrassFieldDto();
+        GrassPriceString = "";
+        GrassFormError = "";
+    }
+    private async Task SaveGrassEdit(int id)
+    {
+        GrassFormError = "";
+        if (GrassEdit.Number <= 0) { GrassFormError = "Nummer skal være > 0."; return; }
+        if (string.IsNullOrWhiteSpace(GrassEdit.Size)) { GrassFormError = "Størrelse er påkrævet."; return; }
+        if (!decimal.TryParse(GrassPriceString, System.Globalization.NumberStyles.Number, System.Globalization.CultureInfo.InvariantCulture, out var price))
+        { GrassFormError = "Ugyldig pris."; return; }
+        if (GrassEdit.ProductId <= 0) { GrassFormError = "Vælg et gyldigt produkt."; return; }
+
+        GrassEdit.PricePerNight = price;
+
+        try
+        {
+            await GrassFieldService.UpdateAsync(id, GrassEdit);
+            GrassEditingId = null;
+            await LoadAll();
+        }
+        catch (Exception ex)
+        {
+            GrassFormError = "Fejl ved opdatering: " + ex.Message;
+        }
+    }
+
+    // Grass: delete
+    private void ConfirmGrassDelete(int id, int number)
+    {
+        GrassDeleteTargetId = id;
+        GrassDeleteTargetName = number.ToString();
+        ShowGrassDeleteConfirm = true;
+        GrassFormError = "";
+    }
+    private void CancelGrassDelete()
+    {
+        ShowGrassDeleteConfirm = false;
+        GrassDeleteTargetId = 0;
+        GrassDeleteTargetName = "";
+    }
+    private async Task DeleteGrassConfirmed()
+    {
+        try
+        {
+            await GrassFieldService.DeleteAsync(GrassDeleteTargetId);
+            ShowGrassDeleteConfirm = false;
+            await LoadAll();
+        }
+        catch (Exception ex)
+        {
+            GrassFormError = "Fejl ved sletning: " + ex.Message;
+        }
+    }
+}
