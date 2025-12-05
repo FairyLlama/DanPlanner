@@ -1,4 +1,4 @@
-﻿using Danplanner.Services;
+using Danplanner.Services;
 using Danplanner.Shared.Models;
 using Microsoft.AspNetCore.Mvc;
 

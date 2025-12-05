@@ -11,13 +11,12 @@ namespace Danplanner.Shared.Models
         public int Id { get; set; }
         public int ProductId { get; set; }
         public string Size { get; set; } = "";
+        public int MaxCapacity { get; set; }
         public int Number { get; set; }
 
         public decimal PricePerNight { get; set; }
 
         public ProductDto? Product { get; set; }
-
-
     }
 
 }

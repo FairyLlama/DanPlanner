@@ -14,7 +14,7 @@ namespace Danplanner.Shared.Models
 
         public bool IsSelected { get; set; }
 
-
+        public List<string> SelectedAddons { get; set; } = new();
 
     }
 }

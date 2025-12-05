@@ -1,8 +1,12 @@
-﻿@inject Danplanner.Client.Services.Authservice AuthService
+@using Danplanner.Client.Pages
+@inject Danplanner.Client.Services.Authservice AuthService
+@inject NavigationManager NavManager
 
 <div class="top-row ps-3 navbar navbar-dark">
     <div class="container-fluid">
-        <img src="img/danplanner-logo.png" style="max-width: 20vh" alt="Danplanner logo">
+        <a href="/">
+        <img src="img/danplanner-logo.png" style="max-width: 10vw" alt="Danplanner logo">
+        </a>
     </div>
 </div>
 
@@ -12,13 +16,19 @@
     <nav class="flex-column">
 
         <div class="nav-item px-3">
-            <NavLink class="nav-link" href="bookingcalendar">
-                <span class="bi" style="margin-bottom: 3vh" aria-hidden="true"><BookingIcon /></span> Booking
+            <NavLink class="nav-link" href="/">
+                <span class="bi" style="margin-bottom: 3vh" aria-hidden="true"><HomeIcon/></span> Home
             </NavLink>
         </div>
 
         <div class="nav-item px-3">
-            <NavLink class="nav-link" href="campingmap">
+            <NavLink class="nav-link" href="booking">
+                <span class="bi" style="margin-bottom: 3vh" aria-hidden="true"><BookingIcon/></span> Booking
+            </NavLink>
+        </div>
+
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="camping-map">
                 <span class="bi" style="margin-bottom: 3vh" aria-hidden="true"><MapIcon /></span> Oversigt
             </NavLink>
         </div>
@@ -35,61 +45,46 @@
             </NavLink>
         </div>
 
-        @* Admin-link kun hvis CurrentUser.Role == "Admin" *@
-        @if (AuthService.CurrentUser?.Role == "Admin")
-        {
-            <div class="nav-item px-3">
-                <NavLink class="nav-link" href="users">
-                    <span class="bi" style="margin-bottom: 3vh" aria-hidden="true"><UserIcon /></span> Users
-                </NavLink>
-            </div>
-        }
-
         <div class="nav-item px-3">
             <NavLink class="nav-link" href="camping">
                 <span class="bi" style="margin-bottom: 3vh" aria-hidden="true"><InfoIcon /></span> Information
             </NavLink>
         </div>
 
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="/">
-                <span class="bi" style="margin-bottom: 3vh" aria-hidden="true"><InfoIcon /></span> Home
-            </NavLink>
-        </div>
-
         @* Admin-link kun hvis CurrentUser.Role == "Admin" *@
         @if (AuthService.CurrentUser?.Role == "Admin")
         {
             <div class="nav-item px-3">
-                <NavLink class="nav-link" href="AdminBooking">
-                    <span class="bi" style="margin-bottom: 3vh" aria-hidden="true"><InfoIcon /></span> Admin Booking
+                <NavLink class="nav-link" href="users">
+                    <span class="bi" style="margin-bottom: 3vh" aria-hidden="true"><UserIcon /></span> Bruger list
                 </NavLink>
             </div>
-        }
 
-        @* Admin-link kun hvis CurrentUser.Role == "Admin" *@
-        @if (AuthService.CurrentUser?.Role == "Admin")
-        {
             <div class="nav-item px-3">
-                <NavLink class="nav-link" href="AdminAddons">
-                    <span class="bi" style="margin-bottom: 3vh" aria-hidden="true"><InfoIcon /></span> Admin Tilkøb
+                <NavLink class="nav-link" href="admin-booking">
+                    <span class="bi" style="margin-bottom: 3vh" aria-hidden="true"><InfoIcon /></span> Admin booking
                 </NavLink>
             </div>
-        }
+        
 
-          @* Admin-link kun hvis CurrentUser.Role == "Admin" *@
-        @if (AuthService.CurrentUser?.Role == "Admin")
-        {
             <div class="nav-item px-3">
-                <NavLink class="nav-link" href="AdminProducts">
-                    <span class="bi" style="margin-bottom: 3vh" aria-hidden="true"><InfoIcon /></span> Admin Products
+                <NavLink class="nav-link" href="admin-calendar">
+                    <span class="bi" style="margin-bottom: 3vh" aria-hidden="true"><InfoIcon /></span> Admin kalender
+                </NavLink>
+            </div>
+
+            <div class="nav-item px-3">
+                <NavLink class="nav-link" href="admin-addons">
+                    <span class="bi" style="margin-bottom: 3vh" aria-hidden="true"><InfoIcon /></span> Admin tilkøb
+                </NavLink>
+            </div>
+
+            <div class="nav-item px-3">
+                <NavLink class="nav-link" href="admin-products">
+                    <span class="bi" style="margin-bottom: 3vh" aria-hidden="true"><InfoIcon /></span> Admin produkter
                 </NavLink>
             </div>
         }
-
-
-
-   
 
     </nav>
 </div>
