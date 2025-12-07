@@ -11,7 +11,10 @@ namespace Danplanner.Client.Services
         // Ny metode til at bekræfte en booking
         Task<bool> ConfirmAsync(int bookingId, int userId);
 
-        Task<BookingDto> UpdateAsync(int id, BookingDto dto);
+        Task UpdateAsync(int id, BookingDto dto);
+
+
+        Task DeleteAsync(int id);
 
     }
 
