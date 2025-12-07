@@ -38,7 +38,7 @@ namespace Danplanner.Shared.Models
 
         public List<BookingAddonDto> BookingAddons { get; set; } = new();
 
-        
+        public string? DiscountType { get; set; }
 
     }
 

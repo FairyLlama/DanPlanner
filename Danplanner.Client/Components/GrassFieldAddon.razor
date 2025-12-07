@@ -1,6 +1,7 @@
 @rendermode InteractiveServer
 @using System.Runtime.CompilerServices
 @using Danplanner.Shared.Models
+@inject IAddonService AddonService
 
 <h3 class="d-flex justify-content-center"><strong>V&#230;lg tilk&#248;b til din gr&#230;splads</strong></h3>
 
@@ -9,14 +10,14 @@
     <ValidationSummary />
 
     <div class="list-group" style="transform: translateX(50%); max-width: 50%">
-        @foreach (var option in _addons)
+        @foreach (var option in AddonOptions)
         {
             <label class="list-group-item d-flex justify-content-between align-items-center">
                 <div>
-                    <InputCheckbox @bind-Value="option.Selected" class="form-check-input me-2" />
+                    <InputCheckbox @bind-Value="option.IsSelected" class="form-check-input me-2" />
                     <span>@option.Name</span>
                 </div>
-                <span class="badge bg-primary rounded-pill">@option.Price kr.</span>
+                <span class="badge bg-primary rounded-pill">@string.Format("{0:#,##}", option.Price) kr.</span>
             </label>
         }
     </div>
@@ -30,8 +31,8 @@
     <div class="alert alert-success mt-4" style="transform: translateX(50%); max-width: 50%">
         <h5>Tilk&#248;b bekr&#230;ftet</h5>
         <p>
-            Valgte tilk&#248;b: @string.Join(", ", _addons.Where(a => a.Selected).Select(a => a.Name)) <br />
-            Ekstra pris: <strong>@_dto.Price kr.</strong>
+            Valgte tilk&#248;b: @string.Join(", ", AddonOptions.Where(a => a.IsSelected).Select(a => a.Name)) <br />
+            Ekstra pris: <strong>@string.Format("{0:#,##}", _dto.Price) kr.</strong>
         </p>
     </div>
 }
@@ -40,37 +41,43 @@
     private AddonDto _dto = new();
     private bool _confirmed = false;
 
-    // 9 realistiske tilkøb med priser
-    private List<AddonOption> _addons = new()
-    {
-        new AddonOption { Name = "El-tilslutning", Price = 30m },
-        new AddonOption { Name = "Hund med", Price = 40m },
-        new AddonOption { Name = "Slutrengøring", Price = 150m },
-        new AddonOption { Name = "Sengetøj & håndklæder", Price = 100m },
-        new AddonOption { Name = "Wi-Fi adgang", Price = 25m },
-        new AddonOption { Name = "Grilludlejning", Price = 80m },
-        new AddonOption { Name = "Cykeludlejning", Price = 120m },
-        new AddonOption { Name = "Parkering ekstra bil", Price = 50m },
-        new AddonOption { Name = "Sen check‑out", Price = 200m }
-    };
+    private List<AddonDto> AddonOptions = new();
+    private List<BookingAddonDto> bookingAddons = new();
 
     private void ConfirmAddons()
     {
-        _dto.SelectedAddons = _addons
-            .Where(a => a.Selected)
+        _dto.SelectedAddons = AddonOptions
+            .Where(a => a.IsSelected)
             .Select(a => a.Name)
             .ToList();
 
-        _dto.Price = _addons
-            .Where(a => a.Selected)
+        _dto.Price = AddonOptions
+            .Where(a => a.IsSelected)
             .Sum(a => a.Price);
 
         _confirmed = true;
+        var selectedAddons = AddonOptions.Where(a => a.IsSelected).ToList();
+        foreach (var selected in selectedAddons)
+        {
+            bookingAddons.Add(
+                new BookingAddonDto
+                {
+                    AddonId = selected.Id,
+                    Quantity = 1,
+                    Price = selected.Price,
+                }
+            );
+        }
     }
 
     [Parameter]
-    public EventCallback<AddonDto?> AddonGrassFieldCallback { get; set; }
+    public EventCallback<List<BookingAddonDto>?> AddonGrassFieldCallback { get; set; }
     private async Task AddonGrassFieldChanged(MouseEventArgs e){
-        await AddonGrassFieldCallback.InvokeAsync(_dto);
+        await AddonGrassFieldCallback.InvokeAsync(bookingAddons);
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        AddonOptions = await AddonService.GetAllAsync();
     }
 }
