@@ -6,10 +6,23 @@
 @inject IBookingService BookingService
 @inject ICottageService CottageService
 @inject IGrassFieldService GrassFieldService
-@inject IAddonService AddonService
 
 <DatePicker StartDateChanged="HandleStartDateChange" EndDateChanged="HandleEndDateChange"/>
-<Discount/>
+
+<InputRadioGroup @bind-Value="SelectedDiscount">
+    <div class="form-check form-check-inline">
+        <InputRadio Value="@("none")" />
+        <label> Ingen rabat</label>
+    </div>
+    <div class="form-check form-check-inline">
+        <InputRadio Value="@("senior")" />
+        <label> Seniorrabat</label>
+    </div>
+    <div class="form-check form-check-inline">
+        <InputRadio Value="@("student")" />
+        <label> Studierabat</label>
+    </div>
+</InputRadioGroup>
 
 @if(startDate is not null && endDate is not null){
     <GuestCounter GuestCountCallback="HandleGuestCountChanged"/>
@@ -30,8 +43,10 @@
     <GrassFieldAddon AddonGrassFieldCallback="HandleSelectedGrassFieldAddonsChanged"/>
 }
 
-<button type="submit" class="btn btn-success mt-4" style="transform: translate(1300px, -62px); position: absolute" @onclick=HandleConfirmBooking>Bekr&#230;ft k&#248;b</button>
-
+@if (FieldNumber is not null)
+{
+    <button type="submit" class="btn btn-success mt-4" style="transform: translate(1300px, -62px); position: absolute" @onclick=HandleConfirmBooking>Bekr&#230;ft k&#248;b</button>
+}
 
 @code {
     @*Kalender booking*@
@@ -48,6 +63,8 @@
         endDate = date;
     }
 
+    @* Rabat *@
+    private string? SelectedDiscount;
     
     @*Antal gæster*@
     private int? GuestCount;
@@ -72,22 +89,21 @@
     }
 
     @*Hytte tilkøb*@
-    private AddonDto? SelectedCottageAddons;
-    private void HandleSelectedCottageAddonsChanged(AddonDto? addon)
+    private List<BookingAddonDto>? SelectedCottageAddons;
+    private void HandleSelectedCottageAddonsChanged(List<BookingAddonDto>? addons)
     {
-        SelectedCottageAddons = addon;
+        SelectedCottageAddons = addons;
     }
 
     @*Græsplads tilkøb*@
-    private AddonDto? SelectedGrassFieldAddons;
-    private void HandleSelectedGrassFieldAddonsChanged(AddonDto? addon)
+    private List<BookingAddonDto>? SelectedGrassFieldAddons;
+    private void HandleSelectedGrassFieldAddonsChanged(List<BookingAddonDto>? addons)
     {
-        SelectedGrassFieldAddons = addon;
+        SelectedGrassFieldAddons = addons;
     }
 
     private async Task HandleConfirmBooking()
     {
-        decimal? totalPrice = 0.0m;
         int? cottageId = null;
         int? grassFieldId = null;
         if (FieldType == ProductType.Cottage)
@@ -95,18 +111,24 @@
             var allCottages = await CottageService.GetAllAsync();
             var cottage = allCottages.FirstOrDefault(c => c.Number == FieldNumber);
             cottageId = cottage?.Id;
-            totalPrice = cottage?.PricePerNight + GuestCount * 400 + SelectedCottageAddons?.Price;
         }
         else if (FieldType == ProductType.GrassField)
         {
             var allGrassFields = await GrassFieldService.GetAllAsync();
             var grassField = allGrassFields.FirstOrDefault(gf => gf.Number == FieldNumber);
             grassFieldId = grassField?.Id;
-            totalPrice = grassField?.PricePerNight + GuestCount * 200 + SelectedGrassFieldAddons?.Price;
         }
 
-        @* var allAddons = await AddonService.GetAllAsync(); *@
-
+        List<BookingAddonDto> addons = [];
+        if (SelectedCottageAddons is not null)
+        {
+            addons = SelectedCottageAddons;
+        }
+        else if (SelectedGrassFieldAddons is not null)
+        {
+            addons = SelectedGrassFieldAddons;
+        }
+    
         await BookingService.CreateAsync(new BookingDto{
             StartDate = startDate.GetValueOrDefault(),
             EndDate = endDate.GetValueOrDefault(),
@@ -114,15 +136,8 @@
             ProductId = FieldType == ProductType.Cottage ? 12 : 11,
             CottageId = cottageId ?? null,
             GrassFieldId = grassFieldId ?? null,
-            TotalPrice = totalPrice.GetValueOrDefault(),
-            BookingAddons = new List<BookingAddonDto>(),
-            @* BookingAddons = new List<BookingAddonDto>{
-                new BookingAddonDto{
-                    Price = totalPrice.GetValueOrDefault(),
-                    Quantity = 1,
-                    AddonId = 
-                }
-            }, *@
+            BookingAddons = addons,
+            DiscountType = SelectedDiscount ?? "none",
         });
     }
 }
