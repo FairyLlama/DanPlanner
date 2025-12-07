@@ -1,0 +1,254 @@
+﻿@page "/AdminGetBookings"
+@using Danplanner.Shared.Models
+@using Danplanner.Client.Services
+@inject IBookingService BookingService
+@inject IAddonService AddonService
+@inject ICottageService CottageService
+@inject IGrassFieldService GrassFieldService
+@inject Authservice AuthService
+@rendermode InteractiveServer
+
+<h3>Admin Bookingoversigt</h3>
+
+@if (AuthService.CurrentUser?.Role != "Admin")
+{
+    <div class="alert alert-warning">
+        Du har ikke adgang til denne side.
+    </div>
+}
+else
+{
+    @if (!string.IsNullOrEmpty(_message))
+    {
+        <div class="alert alert-success">@_message</div>
+    }
+    @if (!string.IsNullOrEmpty(_error))
+    {
+        <div class="alert alert-danger">@_error</div>
+    }
+
+    @if (bookings == null || users == null)
+    {
+        <p>Henter bookings...</p>
+    }
+    else if (!bookings.Any())
+    {
+        <p>Ingen bookings fundet.</p>
+    }
+    else
+    {
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Kunde</th>
+                    <th>Produkt</th>
+                    <th>Start</th>
+                    <th>Slut</th>
+                    <th>Personer</th>
+                    <th>Total</th>
+                    <th>Handlinger</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var b in bookings)
+                {
+                    <tr>
+                        <td>@b.Id</td>
+                        <td>@GetUser(b.UserId)?.Name<br /><small>@GetUser(b.UserId)?.Email</small></td>
+                        <td>@b.Product?.ProductType</td>
+                        <td>@b.StartDate.ToShortDateString()</td>
+                        <td>@b.EndDate.ToShortDateString()</td>
+                        <td>@b.NumberOfPeople</td>
+                        <td>@CalculateTotal(b).ToString("0.00") kr.</td>
+                        <td>
+                            <button class="btn btn-sm btn-primary me-1" @onclick="() => StartEdit(b)">Rediger</button>
+                            <button class="btn btn-sm btn-danger" @onclick="() => DeleteBooking(b.Id)">Slet</button>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+
+    @if (editingBooking != null)
+    {
+        <hr />
+        <h4>Rediger booking #@editingBooking.Id</h4>
+
+        <EditForm Model="editingBooking" OnValidSubmit="SaveBooking">
+            <DataAnnotationsValidator />
+            <ValidationSummary />
+
+            <div class="mb-3">
+                <label class="form-label">Antal personer</label>
+                <InputNumber @bind-Value="editingBooking.NumberOfPeople" class="form-control" />
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">Startdato</label>
+                <InputDate @bind-Value="editingBooking.StartDate" class="form-control" />
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">Slutdato</label>
+                <InputDate @bind-Value="editingBooking.EndDate" class="form-control" />
+            </div>
+
+            @if (editingBooking.BookingAddons != null && editingBooking.BookingAddons.Any())
+            {
+                <div class="mb-3">
+                    <label class="form-label">Tilkøb</label>
+                    <div class="border rounded p-2">
+                        @foreach (var ba in editingBooking.BookingAddons)
+                        {
+                            var addon = editingBooking.Addons?.FirstOrDefault(a => a.Id == ba.AddonId);
+                            <div class="d-flex align-items-center mb-2">
+                                <div class="flex-grow-1">
+                                    @addon?.Name x @ba.Quantity — @addon?.Price.ToString("0.00") kr.
+                                </div>
+                            </div>
+                        }
+                    </div>
+                </div>
+            }
+
+            <div class="mb-3">
+                <label class="form-label">Totalpris:</label>
+                <div><strong>@CalculateTotal(editingBooking).ToString("0.00") kr.</strong></div>
+            </div>
+
+            <button type="submit" class="btn btn-success me-2">Gem</button>
+            <button type="button" class="btn btn-secondary" @onclick="CancelEdit">Annuller</button>
+        </EditForm>
+    }
+}
+
+@code {
+    private List<BookingDto>? bookings;
+    private List<UserDto>? users;
+    private BookingDto? editingBooking;
+    private string _error = "";
+    private string _message = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadUsers();
+        await LoadBookings();
+    }
+
+    private async Task LoadBookings()
+    {
+        try
+        {
+            bookings = await BookingService.GetAllAsync();
+        }
+        catch (Exception ex)
+        {
+            _error = $"Fejl ved hentning af bookings: {ex.Message}";
+        }
+    }
+
+    private async Task LoadUsers()
+    {
+        try
+        {
+            users = await AuthService.GetUsersAsync();
+        }
+        catch (Exception ex)
+        {
+            _error = $"Fejl ved hentning af brugere: {ex.Message}";
+        }
+    }
+
+    private UserDto? GetUser(int? userId) => users?.FirstOrDefault(u => u.Id == userId);
+
+    private void StartEdit(BookingDto b)
+    {
+        editingBooking = new BookingDto
+        {
+            Id = b.Id,
+            UserId = b.UserId,
+            User = b.User,
+            ProductId = b.ProductId,
+            Product = b.Product,
+            CottageId = b.CottageId,
+            Cottage = b.Cottage,
+            GrassFieldId = b.GrassFieldId,
+            GrassField = b.GrassField,
+            StartDate = b.StartDate,
+            EndDate = b.EndDate,
+            NumberOfPeople = b.NumberOfPeople,
+            Addons = b.Addons,
+            BookingAddons = b.BookingAddons
+        };
+        _error = "";
+        _message = "";
+    }
+
+    private void CancelEdit()
+    {
+        editingBooking = null;
+        _error = "";
+        _message = "";
+    }
+
+    private decimal CalculateTotal(BookingDto b)
+    {
+        decimal basePrice = 0;
+        int nights = (b.EndDate - b.StartDate).Days;
+        if (nights < 1) nights = 1;
+
+        if (b.Cottage != null)
+            basePrice = b.Cottage.PricePerNight;
+        else if (b.GrassField != null)
+            basePrice = b.GrassField.PricePerNight;
+
+        decimal addonsPrice = 0;
+        if (b.BookingAddons != null && b.BookingAddons.Any() && b.Addons != null)
+        {
+            foreach (var ba in b.BookingAddons)
+            {
+                var addon = b.Addons.FirstOrDefault(a => a.Id == ba.AddonId);
+                if (addon != null)
+                {
+                    addonsPrice += addon.Price * ba.Quantity;
+                }
+            }
+        }
+
+        return basePrice * nights + addonsPrice;
+    }
+
+    private async Task SaveBooking()
+    {
+        if (editingBooking == null)
+            return;
+
+        try
+        {
+            await BookingService.UpdateAsync(editingBooking.Id, editingBooking);
+            _message = $"Booking #{editingBooking.Id} er opdateret.";
+            editingBooking = null;
+            await LoadBookings();
+        }
+        catch (Exception ex)
+        {
+            _error = $"Fejl ved opdatering: {ex.Message}";
+        }
+    }
+
+    private async Task DeleteBooking(int id)
+    {
+        try
+        {
+            await BookingService.DeleteAsync(id);
+            _message = $"Booking #{id} er slettet.";
+            await LoadBookings();
+        }
+        catch (Exception ex)
+        {
+            _error = $"Fejl ved sletning: {ex.Message}";
+        }
+    }
+}

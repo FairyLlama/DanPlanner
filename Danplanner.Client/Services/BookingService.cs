@@ -1,5 +1,5 @@
-﻿using System.Net.Http.Json;
-using Danplanner.Shared.Models;
+﻿using Danplanner.Shared.Models;
+using System.Net.Http.Json;
 
 namespace Danplanner.Client.Services
 {
@@ -7,39 +7,36 @@ namespace Danplanner.Client.Services
     {
         private readonly HttpClient _http = factory.CreateClient("EF");
 
-        public async Task<BookingDto?> CreateAsync(BookingDto dto)
+        public async Task<List<BookingDto>> GetAllAsync()
         {
-            var resp = await _http.PostAsJsonAsync("api/booking", dto);
-            return resp.IsSuccessStatusCode
-                ? await resp.Content.ReadFromJsonAsync<BookingDto>()
-                : null;
+            return await _http.GetFromJsonAsync<List<BookingDto>>("api/booking") ?? new List<BookingDto>();
         }
-
-        public async Task<List<BookingDto>> GetAllAsync() =>
-            await _http.GetFromJsonAsync<List<BookingDto>>("api/booking") ?? new();
 
         public async Task<BookingDto?> GetByIdAsync(int id)
         {
             return await _http.GetFromJsonAsync<BookingDto>($"api/booking/{id}");
         }
 
+        public async Task<BookingDto?> CreateAsync(BookingDto dto)
+        {
+            var response = await _http.PostAsJsonAsync("api/booking", dto);
+            return await response.Content.ReadFromJsonAsync<BookingDto>();
+        }
 
         public async Task<bool> ConfirmAsync(int bookingId, int userId)
         {
-            var resp = await _http.PutAsJsonAsync($"api/booking/{bookingId}/confirm", userId);
-            return resp.IsSuccessStatusCode;
+            var response = await _http.PutAsJsonAsync($"api/booking/{bookingId}/confirm", userId);
+            return response.IsSuccessStatusCode;
         }
 
-        // update booking
-
-        public async Task<BookingDto?> UpdateAsync(int id, BookingDto dto)
+        public async Task UpdateAsync(int id, BookingDto dto)
         {
-            var resp = await _http.PutAsJsonAsync($"api/booking/{id}", dto);
-            return resp.IsSuccessStatusCode
-                ? await resp.Content.ReadFromJsonAsync<BookingDto>()
-                : null;
+            await _http.PutAsJsonAsync($"api/booking/{id}", dto);
+        }
+
+        public async Task DeleteAsync(int id)
+        {
+            await _http.DeleteAsync($"api/booking/{id}");
         }
     }
-
-
 }

@@ -201,5 +201,21 @@ Adresse: Udbyhøjvej 10, 4180 Sorø
                 );
             }
         }
+
+
+        [HttpDelete("{id:int}")]
+
+        public async Task<IActionResult> Delete(int id)
+        {
+            try
+            {
+                await _svc.DeleteAsync(id);
+                return NoContent();
+            }
+            catch (KeyNotFoundException)
+            {
+                return NotFound();
+            }
+        }
     }
 }
