@@ -191,13 +191,13 @@ namespace Danplanner.Services
             }
 
             // Rabat for senior og studerende
-            if (dto.DiscountType!.Equals("senior"))
+            if (dto.DiscountType.Equals("senior"))
             {
-                basePrice -= 15 / 100 * basePrice;
+                basePrice -= 15/100m * basePrice;
             }
-            else if (dto.DiscountType!.Equals("student"))
+            else if (dto.DiscountType.Equals("student"))
             {
-                basePrice -= 10 / 100 * basePrice;
+                basePrice -= 10 / 100m * basePrice;
             }
 
             booking.TotalPrice = basePrice + addonsPrice;
