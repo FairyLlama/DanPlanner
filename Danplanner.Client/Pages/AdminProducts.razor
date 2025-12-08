@@ -1,6 +1,7 @@
 ﻿@page "/admin-products"
 @rendermode InteractiveServer
 @using Danplanner.Shared.Models
+@using Microsoft.AspNetCore.Components.Forms
 @inject ICottageService CottageService
 @inject IGrassFieldService GrassFieldService
 @inject IProductService ProductService
@@ -94,7 +95,6 @@ else
                                     }
                                     else
                                     {
-
                                         @h.Number
                                     }
                                 </td>
@@ -105,7 +105,6 @@ else
                                     }
                                     else
                                     {
-
                                         @h.MaxCapacity
                                     }
                                 </td>
@@ -116,7 +115,6 @@ else
                                     }
                                     else
                                     {
-
                                         @h.PricePerNight.ToString("0.00")
                                     }
                                 </td>
@@ -186,6 +184,12 @@ else
                         <label class="form-label">Størrelse</label>
                         <input class="form-control" @bind="GrassEdit.Size" />
                     </div>
+
+                    <div class="mb-2">
+                        <label class="form-label">Kapacitet</label>
+                        <InputNumber @bind-Value="GrassEdit.MaxCapacity" class="form-control" />
+                    </div>
+
                     <div class="mb-2">
                         <label class="form-label">Pris pr. nat</label>
                         <input class="form-control" @bind="GrassPriceString" />
@@ -217,6 +221,7 @@ else
                     <tr>
                         <th>Nummer</th>
                         <th>Størrelse</th>
+                        <th>Kapacitet</th>
                         <th>Pris pr. nat</th>
                         <th style="width:260px;"></th>
                     </tr>
@@ -243,7 +248,6 @@ else
                                     }
                                     else
                                     {
-
                                         @g.Number
                                     }
                                 </td>
@@ -254,10 +258,21 @@ else
                                     }
                                     else
                                     {
-
                                         @g.Size
                                     }
                                 </td>
+
+                                <td>
+                                    @if (isEditing)
+                                    {
+                                        <InputNumber @bind-Value="GrassEdit.MaxCapacity" class="form-control" />
+                                    }
+                                    else
+                                    {
+                                        @g.MaxCapacity
+                                    }
+                                </td>
+
                                 <td>
                                     @if (isEditing)
                                     {
@@ -265,10 +280,10 @@ else
                                     }
                                     else
                                     {
-
                                         @g.PricePerNight.ToString("0.00")
                                     }
                                 </td>
+
                                 <td>
                                     @if (isEditing)
                                     {
@@ -507,8 +522,12 @@ else
     private async Task CreateGrass()
     {
         GrassFormError = "";
+        // debug: skriv værdien til server log (se output i konsollen)
+        System.Diagnostics.Debug.WriteLine($"CreateGrass - MaxCapacity BEFORE validation: {GrassEdit.MaxCapacity}");
+
         if (GrassEdit.Number <= 0) { GrassFormError = "Nummer skal være > 0."; return; }
         if (string.IsNullOrWhiteSpace(GrassEdit.Size)) { GrassFormError = "Størrelse er påkrævet."; return; }
+        if (GrassEdit.MaxCapacity <= 0) { GrassFormError = "Kapacitet skal være > 0."; return; }
         if (!decimal.TryParse(GrassPriceString, System.Globalization.NumberStyles.Number, System.Globalization.CultureInfo.InvariantCulture, out var price))
         { GrassFormError = "Ugyldig pris."; return; }
         if (GrassEdit.ProductId <= 0) { GrassFormError = "Vælg et gyldigt produkt."; return; }
@@ -544,6 +563,7 @@ else
             Id = g.Id,
             Number = g.Number,
             Size = g.Size,
+            MaxCapacity = g.MaxCapacity,
             PricePerNight = g.PricePerNight,
             ProductId = g.ProductId
         };
@@ -559,8 +579,12 @@ else
     private async Task SaveGrassEdit(int id)
     {
         GrassFormError = "";
+        // debug: skriv værdien til server log (se output i konsollen)
+        System.Diagnostics.Debug.WriteLine($"SaveGrassEdit - MaxCapacity BEFORE validation: {GrassEdit.MaxCapacity}");
+
         if (GrassEdit.Number <= 0) { GrassFormError = "Nummer skal være > 0."; return; }
         if (string.IsNullOrWhiteSpace(GrassEdit.Size)) { GrassFormError = "Størrelse er påkrævet."; return; }
+        if (GrassEdit.MaxCapacity <= 0) { GrassFormError = "Kapacitet skal være > 0."; return; }
         if (!decimal.TryParse(GrassPriceString, System.Globalization.NumberStyles.Number, System.Globalization.CultureInfo.InvariantCulture, out var price))
         { GrassFormError = "Ugyldig pris."; return; }
         if (GrassEdit.ProductId <= 0) { GrassFormError = "Vælg et gyldigt produkt."; return; }

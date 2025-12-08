@@ -19,6 +19,7 @@ namespace Danplanner.Services
                     Size = g.Size,
                     Number = g.Number,
                     PricePerNight = g.PricePerNight,
+                    MaxCapacity = g.MaxCapacity,        // 🔥 TILFØJET
                     Product = new ProductDto
                     {
                         Id = g.Product.Id,
@@ -40,6 +41,7 @@ namespace Danplanner.Services
                 Size = g.Size,
                 Number = g.Number,
                 PricePerNight = g.PricePerNight,
+                MaxCapacity = g.MaxCapacity,        // 🔥 TILFØJET
                 Product = new ProductDto
                 {
                     Id = g.Product.Id,
@@ -57,6 +59,7 @@ namespace Danplanner.Services
                 Size = dto.Size,
                 Number = dto.Number,
                 PricePerNight = dto.PricePerNight,
+                MaxCapacity = dto.MaxCapacity,      // 🔥 TILFØJET
                 Product = await _db.Products.FindAsync(dto.ProductId)
             };
 
@@ -77,6 +80,7 @@ namespace Danplanner.Services
             entity.Size = dto.Size;
             entity.Number = dto.Number;
             entity.PricePerNight = dto.PricePerNight;
+            entity.MaxCapacity = dto.MaxCapacity;  // 🔥 TILFØJET
 
             await _db.SaveChangesAsync();
             return dto;

@@ -83,7 +83,7 @@
         GrassFields = await GrassFieldService.GetAllAsync();
 
         CottagesByPersonCount = Cottages.ToLookup(c => c.MaxCapacity, c => c.Number);
-        GrassfieldsByPersonCount = GrassFields.ToLookup(g => g.MaxCapacity, g => g.Number);
+        // GrassfieldsByPersonCount = GrassFields.ToLookup(g => g.MaxCapacity, g => g.Number);
      }
 
     @* Guests *@

@@ -381,12 +381,21 @@ else
     private void ValidateNumberOfPeople()
     {
         _personError = ""; // nulstil tidligere fejl
+
         if (_selectedProduct?.ProductType == ProductType.Cottage && _dto.CottageId != null)
         {
             var cottage = _cottages.FirstOrDefault(c => c.Id == _dto.CottageId);
             if (cottage != null && _dto.NumberOfPeople > cottage.MaxCapacity)
             {
                 _personError = $"Der kan maks være {cottage.MaxCapacity} personer i den valgte hytte.";
+            }
+        }
+        else if (_selectedProduct?.ProductType == ProductType.GrassField && _dto.GrassFieldId != null)
+        {
+            var grassField = _grassFields.FirstOrDefault(g => g.Id == _dto.GrassFieldId);
+            if (grassField != null && _dto.NumberOfPeople > grassField.MaxCapacity)
+            {
+                _personError = $"Der kan maks være {grassField.MaxCapacity} personer på den valgte græsplads.";
             }
         }
     }
