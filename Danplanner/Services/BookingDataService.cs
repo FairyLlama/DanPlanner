@@ -5,9 +5,16 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Danplanner.Services
 {
-    public class BookingDataService(AppDbContext db) : IBookingDataService
+    public class BookingDataService : IBookingDataService
     {
-        private readonly AppDbContext _db = db;
+        private readonly AppDbContext _db;
+        private readonly IBookingPriceCalculator _priceCalculator;
+
+        public BookingDataService(AppDbContext db, IBookingPriceCalculator priceCalculator)
+        {
+            _db = db;
+            _priceCalculator = priceCalculator;
+        }
 
         public async Task<List<BookingDto>> GetAllAsync()
         {
@@ -135,10 +142,7 @@ namespace Danplanner.Services
         public async Task<BookingDto> CreateAsync(BookingDto dto)
         {
             var product = await _db.Products.FindAsync(dto.ProductId)
-                          ?? throw new InvalidOperationException("Produkt findes ikke");
-
-            var days = (dto.EndDate - dto.StartDate).Days;
-            if (days <= 0) throw new InvalidOperationException("Ugyldig periode");
+                ?? throw new InvalidOperationException("Produkt findes ikke");
 
             var booking = new Booking
             {
@@ -151,37 +155,20 @@ namespace Danplanner.Services
                 EndDate = dto.EndDate,
                 Product = product,
                 NumberOfPeople = dto.NumberOfPeople,
-                BookingAddons = new List<BookingAddon>()   // 👈 sikrer at listen er klar
+                DiscountType = dto.DiscountType,
+                BookingAddons = new List<BookingAddon>()
             };
 
-            decimal basePrice = 0m;
-            if (dto.CottageId.HasValue)
-            {
-                var cottage = await _db.Cottages.FindAsync(dto.CottageId.Value)
-                              ?? throw new InvalidOperationException("Cottage findes ikke");
-                basePrice = cottage.PricePerNight * days;
-            }
-            else if (dto.GrassFieldId.HasValue)
-            {
-                var grass = await _db.GrassFields.FindAsync(dto.GrassFieldId.Value)
-                             ?? throw new InvalidOperationException("GrassField findes ikke");
-                basePrice = grass.PricePerNight * days;
-            }
-
-            var addonsPrice = 0m;
+            // Addons fyldes fra DTO
             if (dto.BookingAddons != null && dto.BookingAddons.Any())
             {
                 foreach (var ba in dto.BookingAddons)
                 {
                     var addonEntity = await _db.Addons.FindAsync(ba.AddonId)
-                                      ?? throw new InvalidOperationException($"Addon {ba.AddonId} findes ikke");
-
-                    var addonTotal = addonEntity.Price * ba.Quantity;
-                    addonsPrice += addonTotal;
+                        ?? throw new InvalidOperationException($"Addon {ba.AddonId} findes ikke");
 
                     booking.BookingAddons.Add(new BookingAddon
                     {
-                        BookingId = booking.Id,   // 👈 sæt FK eksplicit
                         AddonId = ba.AddonId,
                         Quantity = ba.Quantity,
                         Price = addonEntity.Price,
@@ -190,17 +177,8 @@ namespace Danplanner.Services
                 }
             }
 
-            // Rabat for senior og studerende
-            if (dto.DiscountType!.Equals("senior"))
-            {
-                basePrice -= 15 / 100 * basePrice;
-            }
-            else if (dto.DiscountType!.Equals("student"))
-            {
-                basePrice -= 10 / 100 * basePrice;
-            }
-
-            booking.TotalPrice = basePrice + addonsPrice;
+            // ✅ Brug central prisberegning
+            booking.TotalPrice = await _priceCalculator.CalculateTotalPriceAsync(dto);
 
             _db.Bookings.Add(booking);
             await _db.SaveChangesAsync();
@@ -233,7 +211,6 @@ namespace Danplanner.Services
             };
         }
 
-
         public async Task<BookingDto?> UpdateAsync(BookingDto dto)
         {
             var booking = await _db.Bookings
@@ -242,7 +219,6 @@ namespace Danplanner.Services
 
             if (booking == null) return null;
 
-            // Opdater felter
             booking.ProductId = dto.ProductId;
             booking.CottageId = dto.CottageId;
             booking.GrassFieldId = dto.GrassFieldId;
@@ -250,6 +226,7 @@ namespace Danplanner.Services
             booking.EndDate = dto.EndDate;
             booking.NumberOfPeople = dto.NumberOfPeople;
             booking.Status = dto.Status ?? booking.Status;
+            booking.DiscountType = dto.DiscountType;
 
             // Opdater tilkøb
             booking.BookingAddons.Clear();
@@ -258,11 +235,10 @@ namespace Danplanner.Services
                 foreach (var ba in dto.BookingAddons)
                 {
                     var addonEntity = await _db.Addons.FindAsync(ba.AddonId)
-                                      ?? throw new InvalidOperationException($"Addon {ba.AddonId} findes ikke");
+                        ?? throw new InvalidOperationException($"Addon {ba.AddonId} findes ikke");
 
                     booking.BookingAddons.Add(new BookingAddon
                     {
-                        BookingId = booking.Id,
                         AddonId = ba.AddonId,
                         Quantity = ba.Quantity,
                         Price = addonEntity.Price,
@@ -271,28 +247,11 @@ namespace Danplanner.Services
                 }
             }
 
-            // Beregn pris igen
-            var days = (dto.EndDate - dto.StartDate).Days;
-            if (days <= 0) days = 1;
-
-            decimal basePrice = 0m;
-            if (dto.CottageId.HasValue)
-            {
-                var cottage = await _db.Cottages.FindAsync(dto.CottageId.Value);
-                if (cottage != null) basePrice = cottage.PricePerNight * days;
-            }
-            else if (dto.GrassFieldId.HasValue)
-            {
-                var grass = await _db.GrassFields.FindAsync(dto.GrassFieldId.Value);
-                if (grass != null) basePrice = grass.PricePerNight * days;
-            }
-
-            decimal addonsPrice = booking.BookingAddons.Sum(a => a.Price * a.Quantity);
-            booking.TotalPrice = basePrice + addonsPrice;
+        
+            booking.TotalPrice = await _priceCalculator.CalculateTotalPriceAsync(dto);
 
             await _db.SaveChangesAsync();
 
-            // Returnér DTO
             return new BookingDto
             {
                 Id = booking.Id,
@@ -328,12 +287,12 @@ namespace Danplanner.Services
             return true;
         }
 
-
         public async Task DeleteAsync(int id)
         {
             var booking = await _db.Bookings.FindAsync(id);
             if (booking == null)
                 throw new KeyNotFoundException("Booking ikke fundet");
+
             _db.Bookings.Remove(booking);
             await _db.SaveChangesAsync();
         }

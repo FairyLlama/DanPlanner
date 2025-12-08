@@ -24,6 +24,10 @@
     <ProjectReference Include="..\Danplanner.Client\Danplanner.Client.csproj" />
     <ProjectReference Include="..\Danplanner.Shared\Danplanner.Shared.csproj" />
     <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.Server" Version="8.0.19" />
+
+	  <!-- 🟢 EF Core + InMemory med samme version som serveren -->
+	  <PackageReference Include="Microsoft.EntityFrameworkCore" Version="8.0.10" />
+	  <PackageReference Include="Microsoft.EntityFrameworkCore.InMemory" Version="8.0.10" />
   </ItemGroup>
 
   <ItemGroup>

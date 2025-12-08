@@ -36,6 +36,8 @@ namespace Danplanner.Data.Entities
         public ICollection<BookingAddon> BookingAddons { get; set; } = new List<BookingAddon>();
 
         public Receipt? Receipt { get; set; }
+
+        public string? DiscountType { get; set; }
     }
 
 

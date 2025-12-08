@@ -6,6 +6,7 @@
 @inject ICottageService CottageService
 @inject IGrassFieldService GrassFieldService
 @inject Authservice AuthService
+@inject IBookingPriceService BookingPriceService
 @rendermode InteractiveServer
 
 <h3>Admin Bookingoversigt</h3>
@@ -193,32 +194,9 @@ else
         _message = "";
     }
 
+    // ✅ Nu bruger vi den fælles prisservice
     private decimal CalculateTotal(BookingDto b)
-    {
-        decimal basePrice = 0;
-        int nights = (b.EndDate - b.StartDate).Days;
-        if (nights < 1) nights = 1;
-
-        if (b.Cottage != null)
-            basePrice = b.Cottage.PricePerNight;
-        else if (b.GrassField != null)
-            basePrice = b.GrassField.PricePerNight;
-
-        decimal addonsPrice = 0;
-        if (b.BookingAddons != null && b.BookingAddons.Any() && b.Addons != null)
-        {
-            foreach (var ba in b.BookingAddons)
-            {
-                var addon = b.Addons.FirstOrDefault(a => a.Id == ba.AddonId);
-                if (addon != null)
-                {
-                    addonsPrice += addon.Price * ba.Quantity;
-                }
-            }
-        }
-
-        return basePrice * nights + addonsPrice;
-    }
+        => BookingPriceService.CalculateStoredBookingTotal(b);
 
     private async Task SaveBooking()
     {

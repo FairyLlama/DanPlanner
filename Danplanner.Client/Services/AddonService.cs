@@ -1,6 +1,7 @@
 ﻿using Danplanner.Shared.Models;
 using System.Net.Http.Json;
 
+
 namespace Danplanner.Client.Services
 {
     public class AddonService(IHttpClientFactory factory) : IAddonService

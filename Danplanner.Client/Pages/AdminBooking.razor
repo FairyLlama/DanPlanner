@@ -8,6 +8,8 @@
 @inject IBookingService BookingService
 @inject IAddonService AddonService
 @inject Authservice AuthService
+@inject IBookingPriceService BookingPriceService
+@inject IBookingValidationService BookingValidationService
 @inject IJSRuntime JS
 
 <h3>Admin Booking</h3>
@@ -40,6 +42,10 @@ else
                             <div class="col-md-6">
                                 <label class="form-label small">Slutdato</label>
                                 <InputDate class="form-control" @bind-Value="EndDateProp" />
+                                @if (!string.IsNullOrEmpty(_dateError))
+                                {
+                                    <div class="text-danger small mt-1">@_dateError</div>
+                                }
                             </div>
 
                             <div class="col-12">
@@ -116,7 +122,11 @@ else
 
                             <div class="col-12">
                                 <div class="d-flex justify-content-end gap-2 mt-3">
-                                    <button type="submit" class="btn btn-outline-primary">Gå videre — Kundeinfo</button>
+                                    <button type="submit"
+                                            class="btn btn-outline-primary"
+                                            disabled="@(!CanProceedFromStep0)">
+                                        Gå videre — Kundeinfo
+                                    </button>
                                 </div>
                             </div>
                         </div>
@@ -216,7 +226,9 @@ else
                             <button class="btn btn-link" @onclick="() => GoBackToStep(0)">Rediger booking</button>
                         </div>
                         <div>
-                            <button class="btn btn-success" @onclick="ConfirmBooking">Bekræft booking</button>
+                            <button class="btn btn-success" @onclick="ConfirmBooking" disabled="@(!CanConfirm)">
+                                Bekræft booking
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -296,9 +308,7 @@ else
 }
 
 @code {
-
     private bool _hasAttemptedCreate = false;
-
     private int CurrentStep = 0;
 
     private BookingDto _dto = new()
@@ -315,19 +325,30 @@ else
     private List<CottageDto> _cottages = new();
     private List<GrassFieldDto> _grassFields = new();
     private List<AddonDto> _addons = new();
+    private List<BookingDto> _existingBookings = new(); // bruges til tilgængelighedstjek
 
     private HashSet<int> _selectedAddonIds = new();
     private Dictionary<int, int> _addonQuantities = new();
-
     private ProductDto? _selectedProduct;
+
     private string _error = "";
     private string _personError = "";
+    private string _dateError = "";
     private AuthRequest _user = new();
     private int _userId;
     private string _debugMessage = "";
     private decimal TotalPrice = 0;
 
-    // Wrapper properties der kalder UpdateTotal()
+    private bool CanProceedFromStep0 =>
+        _dto.ProductId > 0 &&
+        string.IsNullOrEmpty(_personError) &&
+        string.IsNullOrEmpty(_dateError);
+
+    private bool CanConfirm =>
+        string.IsNullOrEmpty(_personError) &&
+        string.IsNullOrEmpty(_dateError);
+
+    // Wrapper properties der kalder UpdateTotal()/validering
     private int ProductId
     {
         get => _dto.ProductId;
@@ -339,34 +360,56 @@ else
             _dto.GrassFieldId = null;
             UpdateTotal();
             ValidateNumberOfPeople();
+            ValidateAvailability();
         }
     }
 
     private int? CottageIdProp
     {
         get => _dto.CottageId;
-        set { _dto.CottageId = value; UpdateTotal(); ValidateNumberOfPeople(); }
+        set
+        {
+            _dto.CottageId = value;
+            UpdateTotal();
+            ValidateNumberOfPeople();
+            ValidateAvailability();
+        }
     }
 
     private int? GrassFieldIdProp
     {
         get => _dto.GrassFieldId;
-        set { _dto.GrassFieldId = value; UpdateTotal(); ValidateNumberOfPeople(); }
+        set
+        {
+            _dto.GrassFieldId = value;
+            UpdateTotal();
+            ValidateNumberOfPeople();
+            ValidateAvailability();
+        }
     }
 
     private DateTime StartDateProp
     {
         get => _dto.StartDate;
-        set { _dto.StartDate = value; UpdateTotal(); }
+        set
+        {
+            _dto.StartDate = value;
+            UpdateTotal();
+            ValidateAvailability();
+        }
     }
 
     private DateTime EndDateProp
     {
         get => _dto.EndDate;
-        set { _dto.EndDate = value; UpdateTotal(); }
+        set
+        {
+            _dto.EndDate = value;
+            UpdateTotal();
+            ValidateAvailability();
+        }
     }
 
-    // NY: Live-validering af antal personer
     private int NumberOfPeopleProp
     {
         get => _dto.NumberOfPeople;
@@ -380,24 +423,23 @@ else
 
     private void ValidateNumberOfPeople()
     {
-        _personError = ""; // nulstil tidligere fejl
+        _personError = BookingValidationService.ValidateNumberOfPeople(
+            _dto,
+            _selectedProduct,
+            _cottages,
+            _grassFields
+        );
+    }
 
-        if (_selectedProduct?.ProductType == ProductType.Cottage && _dto.CottageId != null)
-        {
-            var cottage = _cottages.FirstOrDefault(c => c.Id == _dto.CottageId);
-            if (cottage != null && _dto.NumberOfPeople > cottage.MaxCapacity)
-            {
-                _personError = $"Der kan maks være {cottage.MaxCapacity} personer i den valgte hytte.";
-            }
-        }
-        else if (_selectedProduct?.ProductType == ProductType.GrassField && _dto.GrassFieldId != null)
-        {
-            var grassField = _grassFields.FirstOrDefault(g => g.Id == _dto.GrassFieldId);
-            if (grassField != null && _dto.NumberOfPeople > grassField.MaxCapacity)
-            {
-                _personError = $"Der kan maks være {grassField.MaxCapacity} personer på den valgte græsplads.";
-            }
-        }
+    private void ValidateAvailability()
+    {
+        _dateError = BookingValidationService.ValidateAvailability(
+            _dto,
+            _selectedProduct,
+            _existingBookings
+        );
+
+        StateHasChanged();
     }
 
     protected override async Task OnInitializedAsync()
@@ -409,6 +451,7 @@ else
         _cottages = await CottageService.GetAllAsync();
         _grassFields = await GrassFieldService.GetAllAsync();
         _addons = await AddonService.GetAllAsync();
+        _existingBookings = await BookingService.GetAllAsync();
 
         foreach (var addon in _addons)
             _addonQuantities[addon.Id] = 1;
@@ -418,39 +461,24 @@ else
 
     private void UpdateTotal()
     {
-        decimal basePrice = 0;
+        TotalPrice = BookingPriceService.CalculatePreviewTotal(
+            _dto,
+            _selectedProduct,
+            _cottages,
+            _grassFields,
+            _addons,
+            _addonQuantities,
+            _selectedAddonIds
+        );
 
-        if (_selectedProduct?.ProductType == ProductType.Cottage && _dto.CottageId != null)
-        {
-            var cottage = _cottages.FirstOrDefault(c => c.Id == _dto.CottageId);
-            if (cottage != null) basePrice = cottage.PricePerNight;
-        }
-        else if (_selectedProduct?.ProductType == ProductType.GrassField && _dto.GrassFieldId != null)
-        {
-            var grass = _grassFields.FirstOrDefault(g => g.Id == _dto.GrassFieldId);
-            if (grass != null) basePrice = grass.PricePerNight;
-        }
-
-        int nights = (_dto.EndDate - _dto.StartDate).Days;
-        if (nights < 1) nights = 1;
-
-        decimal addonsPrice = _selectedAddonIds.Sum(id =>
-        {
-            var addon = _addons.FirstOrDefault(a => a.Id == id);
-            return addon != null ? addon.Price * GetQuantity(id) : 0;
-        });
-
-        TotalPrice = (basePrice * nights) + addonsPrice;
         _dto.TotalPrice = TotalPrice;
         StateHasChanged();
     }
 
-    // --- IMPORTANT: This no longer creates a booking on "next" ---
     private async Task HandleBooking()
     {
         _error = "";
 
-        // Basic validation
         if (_dto.ProductId <= 0)
         {
             _error = "Vælg venligst et produkt.";
@@ -481,14 +509,17 @@ else
             return;
         }
 
-        // Build BookingAddons locally (no server call)
+        if (!string.IsNullOrEmpty(_dateError))
+        {
+            _error = "Den valgte periode er ikke ledig for det valgte produkt.";
+            return;
+        }
+
         _dto.BookingAddons = _selectedAddonIds
             .Select(id => new BookingAddonDto { AddonId = id, Quantity = GetQuantity(id) })
             .ToList();
 
-        _dto.Status = "Afventer"; // set client-side; actual creation happens at confirm
-
-        // Move to next UI step (no DB interaction)
+        _dto.Status = "Afventer";
         CurrentStep = 1;
         await ScrollToSection("step-user");
     }
@@ -496,7 +527,6 @@ else
     private async Task GoToSummary()
     {
         _error = "";
-        // Optional: validate user fields lightly
         if (string.IsNullOrWhiteSpace(_user.Name) || string.IsNullOrWhiteSpace(_user.Email))
         {
             _error = "Navn og email er påkrævet.";
@@ -511,10 +541,8 @@ else
     {
         _error = "";
         _debugMessage = "";
-
         _hasAttemptedCreate = true;
 
-        // Final validations
         if (_dto.ProductId <= 0)
         {
             _error = "Produkt mangler.";
@@ -543,16 +571,21 @@ else
             return;
         }
 
-        // Ensure booking addons are set from current selection
+        if (!string.IsNullOrEmpty(_dateError))
+        {
+            _error = "Den valgte periode er ikke ledig for det valgte produkt.";
+            await ScrollToSection("step-booking");
+            return;
+        }
+
         _dto.BookingAddons = _selectedAddonIds
             .Select(id => new BookingAddonDto { AddonId = id, Quantity = GetQuantity(id) })
             .ToList();
 
-        _dto.Status = "Afventer"; // initial
+        _dto.Status = "Afventer";
 
         try
         {
-            // 1) Create booking on server
             var created = await BookingService.CreateAsync(_dto);
             if (created is null)
             {
@@ -563,7 +596,6 @@ else
             _created = created;
             _debugMessage = $"Booking oprettet med ID {_created.Id}.";
 
-            // 2) Opret/registrer bruger
             var userId = await AuthService.RegisterAsync(
                 _user.Password, _user.Name, _user.Email,
                 _user.Address, _user.Phone, _user.Country, _user.Language
@@ -579,7 +611,6 @@ else
 
             _userId = id;
 
-            // 3) Bekræft booking (server-side action som sætter aktiv og sender mail)
             var success = await BookingService.ConfirmAsync(_created.Id, _userId);
             if (success)
             {
@@ -604,7 +635,6 @@ else
     {
         _error = "";
         CurrentStep = step;
-        // Scroll to the requested section for convenience
         var id = step switch
         {
             0 => "step-booking",
@@ -623,7 +653,6 @@ else
         }
         catch
         {
-            // ignore scrolling errors
         }
     }
 
@@ -644,6 +673,7 @@ else
         foreach (var addon in _addons) _addonQuantities[addon.Id] = 1;
         _user = new AuthRequest();
         _personError = "";
+        _dateError = "";
         UpdateTotal();
         _ = ScrollToSection("step-booking");
     }

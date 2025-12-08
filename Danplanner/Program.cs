@@ -72,8 +72,9 @@ builder.Services.AddScoped<IAddonService, AddonService>();
 builder.Services.AddScoped<IAddonDataService, AddonDataService>();
 builder.Services.AddScoped<IEmailService, EmailService>();
 builder.Services.AddScoped<IReceiptService, ReceiptService>();
-
-
+builder.Services.AddScoped<IBookingPriceService, BookingPriceService>();
+builder.Services.AddScoped<IBookingPriceCalculator, BookingPriceCalculator>();
+builder.Services.AddScoped<IBookingValidationService, BookingValidationService>();
 
 builder.Services.AddScoped<CampingSiteSeeder>();
 
