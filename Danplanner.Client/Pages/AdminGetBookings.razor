@@ -126,18 +126,22 @@ else
 }
 
 @code {
+
+    // vi opretter variabler til at holde bookings og brugere samt error/message
+
     private List<BookingDto>? bookings;
     private List<UserDto>? users;
     private BookingDto? editingBooking;
     private string _error = "";
     private string _message = "";
 
+    // Hent både brugere og bookings ved initialisering
     protected override async Task OnInitializedAsync()
     {
         await LoadUsers();
         await LoadBookings();
     }
-
+    // Hent alle bookings
     private async Task LoadBookings()
     {
         try
@@ -149,7 +153,7 @@ else
             _error = $"Fejl ved hentning af bookings: {ex.Message}";
         }
     }
-
+    // Hent alle brugere
     private async Task LoadUsers()
     {
         try
@@ -161,8 +165,10 @@ else
             _error = $"Fejl ved hentning af brugere: {ex.Message}";
         }
     }
-
+    // Find bruger baseret på userId
     private UserDto? GetUser(int? userId) => users?.FirstOrDefault(u => u.Id == userId);
+
+    // Start redigering af en booking
 
     private void StartEdit(BookingDto b)
     {
@@ -186,7 +192,7 @@ else
         _error = "";
         _message = "";
     }
-
+    // Annuller redigering
     private void CancelEdit()
     {
         editingBooking = null;
@@ -194,10 +200,11 @@ else
         _message = "";
     }
 
-    // ✅ Nu bruger vi den fælles prisservice
+    // Beregn totalpris for en booking via BookingPriceService
     private decimal CalculateTotal(BookingDto b)
         => BookingPriceService.CalculateStoredBookingTotal(b);
 
+    // Gem opdateret booking 
     private async Task SaveBooking()
     {
         if (editingBooking == null)
@@ -215,7 +222,7 @@ else
             _error = $"Fejl ved opdatering: {ex.Message}";
         }
     }
-
+    // Slet en booking
     private async Task DeleteBooking(int id)
     {
         try

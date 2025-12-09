@@ -1,5 +1,7 @@
 namespace AuthenticationService.Models;
 
+
+// klasse til at modtage registreringsdata
 public class AuthRequest
 {
     public required string Email { get; set; }

@@ -8,6 +8,8 @@ namespace Danplanner.Services
 {
     public class ReceiptService : IReceiptService
     {
+
+        // Genererer en PDF-kvittering for en given booking (OBS: lavet via. AI)
         public byte[] GenerateReceipt(BookingDto booking)
         {
             string produktTypeDa = ToDanish(booking.Product?.ProductType);
@@ -45,7 +47,7 @@ namespace Danplanner.Services
                         }
                     });
 
-                    // Content
+                    // Vi bruger en kolonne til at strukturere indholdet
                     page.Content().Column(col =>
                     {
                         col.Spacing(12);
@@ -123,6 +125,8 @@ namespace Danplanner.Services
 
             return document.GeneratePdf();
         }
+
+        // Hjælpefunktion til at oversætte ProductType til dansk
 
         private static string ToDanish(ProductType? type)
         {

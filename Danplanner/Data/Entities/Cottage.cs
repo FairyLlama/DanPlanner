@@ -1,5 +1,7 @@
 ﻿namespace Danplanner.Data.Entities
 {
+
+    // Klasse der repræsenterer en hytte (cottage) i systemet
     public class Cottage
 
     {

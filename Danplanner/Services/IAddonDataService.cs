@@ -4,6 +4,7 @@ namespace Danplanner.Services
 {
     public interface IAddonDataService
     {
+        // CRUD operations for Addons
         Task<List<AddonDto>> GetAllAsync();
         Task<AddonDto?> GetByIdAsync(int id);
         Task<AddonDto> CreateAsync(AddonDto dto);

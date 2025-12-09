@@ -8,6 +8,7 @@ namespace Danplanner.Services
     {
         private readonly AppDbContext _db = db;
 
+        // Hent alle produkter
         public async Task<List<ProductDto>> GetAllAsync() =>
             await _db.Products.Select(p => new ProductDto
             {
@@ -15,6 +16,7 @@ namespace Danplanner.Services
                 ProductType = (ProductType)p.ProductType
             }).ToListAsync();
 
+        // Hent produkt via id
         public async Task<ProductDto?> GetByIdAsync(int id)
         {
             var p = await _db.Products.FindAsync(id);

@@ -4,11 +4,12 @@ using System.Net.Mail;
 namespace Danplanner.Services
 {
 
-
+    // Service til at sende emails via SMTP
     public class EmailService(IConfiguration config) : IEmailService
     {
         private readonly IConfiguration _config = config;
 
+        // Sender en email med PDF-attachment
         public async Task SendAsync(string toEmail, string subject, string body, byte[]? attachment = null, string attachmentName = "kvittering.pdf")
         {
             var settings = _config.GetSection("EmailSettings");

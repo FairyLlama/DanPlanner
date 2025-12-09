@@ -1,5 +1,6 @@
 namespace AuthenticationService.Models;
 
+// klasse til at repræsentere en bruger
 public class User
 {
     public int Id { get; set; }

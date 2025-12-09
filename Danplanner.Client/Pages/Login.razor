@@ -44,16 +44,20 @@
 </div>
 
 @code {
+
+    // Model til login-formularen
+
     private LoginModel loginModel = new();
 
+    // Håndterer login-logikken via. Authservice
     private async Task HandleLogin()
     {
         var token = await Auth.LoginAsync(loginModel.Email, loginModel.Password);
 
-        // 👇 Redirect til login-siden igen, så beskeden vises efter refresh
+        // Redirect til login-siden igen, så beskeden vises efter refresh
         NavManager.NavigateTo("/login", forceLoad: true);
     }
-
+    // Login-model med validering
     public class LoginModel
     {
         [Required, EmailAddress] public string Email { get; set; } = string.Empty;

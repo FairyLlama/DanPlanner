@@ -5,6 +5,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Danplanner.Services
 {
+    // Data service for managing bookings
     public class BookingDataService : IBookingDataService
     {
         private readonly AppDbContext _db;
@@ -15,7 +16,7 @@ namespace Danplanner.Services
             _db = db;
             _priceCalculator = priceCalculator;
         }
-
+        // henter alle bookings med relaterede data
         public async Task<List<BookingDto>> GetAllAsync()
         {
             return await _db.Bookings
@@ -76,6 +77,7 @@ namespace Danplanner.Services
                 .ToListAsync();
         }
 
+        // henter en booking efter ID med relaterede data
         public async Task<BookingDto?> GetByIdAsync(int id)
         {
             var b = await _db.Bookings
@@ -138,7 +140,7 @@ namespace Danplanner.Services
                 }
             };
         }
-
+        // opretter en ny booking
         public async Task<BookingDto> CreateAsync(BookingDto dto)
         {
             var product = await _db.Products.FindAsync(dto.ProductId)
@@ -177,7 +179,8 @@ namespace Danplanner.Services
                 }
             }
 
-            // ✅ Brug central prisberegning
+            // Bruger BookingPriceCalculator til at beregne total pris
+
             booking.TotalPrice = await _priceCalculator.CalculateTotalPriceAsync(dto);
 
             _db.Bookings.Add(booking);
@@ -211,6 +214,7 @@ namespace Danplanner.Services
             };
         }
 
+        // opdaterer en eksisterende booking
         public async Task<BookingDto?> UpdateAsync(BookingDto dto)
         {
             var booking = await _db.Bookings
@@ -247,7 +251,7 @@ namespace Danplanner.Services
                 }
             }
 
-        
+            // Beregn den nye total pris
             booking.TotalPrice = await _priceCalculator.CalculateTotalPriceAsync(dto);
 
             await _db.SaveChangesAsync();
@@ -274,7 +278,7 @@ namespace Danplanner.Services
                 }).ToList()
             };
         }
-
+        // bekræfter en booking ved at tilknytte en bruger og opdatere status
         public async Task<bool> ConfirmAsync(int bookingId, int userId)
         {
             var booking = await _db.Bookings.FirstOrDefaultAsync(b => b.Id == bookingId);
@@ -286,7 +290,7 @@ namespace Danplanner.Services
             await _db.SaveChangesAsync();
             return true;
         }
-
+        // sletter en booking efter ID
         public async Task DeleteAsync(int id)
         {
             var booking = await _db.Bookings.FindAsync(id);

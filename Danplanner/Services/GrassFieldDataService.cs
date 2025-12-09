@@ -9,6 +9,8 @@ namespace Danplanner.Services
     {
         private readonly AppDbContext _db = db;
 
+
+        // Hent alle GrassFields
         public async Task<List<GrassFieldDto>> GetAllAsync() =>
             await _db.GrassFields
                 .Include(g => g.Product)
@@ -19,7 +21,7 @@ namespace Danplanner.Services
                     Size = g.Size,
                     Number = g.Number,
                     PricePerNight = g.PricePerNight,
-                    MaxCapacity = g.MaxCapacity,        // 🔥 TILFØJET
+                    MaxCapacity = g.MaxCapacity,      
                     Product = new ProductDto
                     {
                         Id = g.Product.Id,
@@ -28,6 +30,7 @@ namespace Danplanner.Services
                 })
                 .ToListAsync();
 
+        // Hent GrassField efter Id
         public async Task<GrassFieldDto?> GetByIdAsync(int id)
         {
             var g = await _db.GrassFields
@@ -41,7 +44,7 @@ namespace Danplanner.Services
                 Size = g.Size,
                 Number = g.Number,
                 PricePerNight = g.PricePerNight,
-                MaxCapacity = g.MaxCapacity,        // 🔥 TILFØJET
+                MaxCapacity = g.MaxCapacity,        
                 Product = new ProductDto
                 {
                     Id = g.Product.Id,
@@ -50,7 +53,7 @@ namespace Danplanner.Services
             };
         }
 
-        // CREATE
+        // Opret ny GrassField
         public async Task<GrassFieldDto> CreateAsync(GrassFieldDto dto)
         {
             var entity = new GrassField
@@ -59,7 +62,7 @@ namespace Danplanner.Services
                 Size = dto.Size,
                 Number = dto.Number,
                 PricePerNight = dto.PricePerNight,
-                MaxCapacity = dto.MaxCapacity,      // 🔥 TILFØJET
+                MaxCapacity = dto.MaxCapacity,      
                 Product = await _db.Products.FindAsync(dto.ProductId)
             };
 
@@ -70,7 +73,7 @@ namespace Danplanner.Services
             return dto;
         }
 
-        // UPDATE
+        // Opdater eksisterende GrassField
         public async Task<GrassFieldDto> UpdateAsync(int id, GrassFieldDto dto)
         {
             var entity = await _db.GrassFields.FindAsync(id);
@@ -80,13 +83,13 @@ namespace Danplanner.Services
             entity.Size = dto.Size;
             entity.Number = dto.Number;
             entity.PricePerNight = dto.PricePerNight;
-            entity.MaxCapacity = dto.MaxCapacity;  // 🔥 TILFØJET
+            entity.MaxCapacity = dto.MaxCapacity; 
 
             await _db.SaveChangesAsync();
             return dto;
         }
 
-        // DELETE
+        // Slet GrassField
         public async Task DeleteAsync(int id)
         {
             var entity = await _db.GrassFields.FindAsync(id);

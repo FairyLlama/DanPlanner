@@ -1,5 +1,7 @@
 ﻿namespace Danplanner.Data.Entities
 {
+
+    // Klasse der repræsenterer et græsareal i systemet
     public class GrassField
     {
         public int Id { get; set; }

@@ -89,8 +89,14 @@ else
 }
 
 @code {
+
+    // Liste over tilkøb
+
     private List<AddonDto>? addons;
+    // Tilkøb der redigeres i formularen
     private AddonDto editingAddon = new();
+
+    // Tjek om den nuværende bruger er admin
     private bool IsAdmin => AuthService.CurrentUser?.Role == "Admin";
 
     protected override async Task OnInitializedAsync()
@@ -98,10 +104,10 @@ else
         // Hent alle tilkøb fra API’et
         addons = await AddonService.GetAllAsync();
     }
-
+    // Start redigering af et tilkøb
     private void StartEdit(AddonDto addon)
     {
-        // Lav en kopi, så vi ikke redigerer direkte i listen
+        
         editingAddon = new AddonDto
         {
             Id = addon.Id,
@@ -109,12 +115,12 @@ else
             Price = addon.Price
         };
     }
-
+    // Annuller redigering
     private void CancelEdit()
     {
         editingAddon = new AddonDto();
     }
-
+    // Gem tilkøb (opret eller opdater)
     private async Task SaveAddon()
     {
         if (!IsAdmin)
@@ -150,6 +156,7 @@ else
         // Nulstil formularen
         editingAddon = new AddonDto();
     }
+    // Slet et tilkøb
 
     private async Task Delete(int id)
     {
@@ -159,7 +166,7 @@ else
         await AddonService.DeleteAsync(id);
         addons?.RemoveAll(a => a.Id == id);
 
-        // Hvis man var i gang med at redigere den, ryd formular
+        // Hvis det slettede tilkøb var i redigering, nulstil formularen
         if (editingAddon.Id == id)
             editingAddon = new AddonDto();
     }

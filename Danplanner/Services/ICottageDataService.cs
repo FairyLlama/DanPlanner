@@ -4,6 +4,8 @@ namespace Danplanner.Services
 {
     public interface ICottageDataService
     {
+
+        // CRUD operations for Cottage entities
         Task<List<CottageDto>> GetAllAsync();
         Task<CottageDto?> GetByIdAsync(int id);
 

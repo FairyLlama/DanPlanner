@@ -5,10 +5,13 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Danplanner.Services
 {
+
+    // Service til håndtering af Addon-data
     public class AddonDataService(AppDbContext db) : IAddonDataService
     {
         private readonly AppDbContext _db = db;
 
+        // Hent alle addons
         public async Task<List<AddonDto>> GetAllAsync()
         {
             return await _db.Addons
@@ -20,7 +23,7 @@ namespace Danplanner.Services
                 })
                 .ToListAsync();
         }
-
+        // Hent addon efter ID
         public async Task<AddonDto?> GetByIdAsync(int id)
         {
             var addon = await _db.Addons.FindAsync(id);
@@ -33,7 +36,7 @@ namespace Danplanner.Services
                 Price = addon.Price
             };
         }
-
+        // Opret ny addon
         public async Task<AddonDto> CreateAsync(AddonDto dto)
         {
             var addon = new Addons
@@ -48,7 +51,7 @@ namespace Danplanner.Services
             dto.Id = addon.Id;
             return dto;
         }
-
+        // Opdater eksisterende addon
         public async Task UpdateAsync(int id, AddonDto dto)
         {
             var addon = await _db.Addons.FindAsync(id);
@@ -59,7 +62,7 @@ namespace Danplanner.Services
 
             await _db.SaveChangesAsync();
         }
-
+        // Slet addon efter ID
         public async Task DeleteAsync(int id)
         {
             var addon = await _db.Addons.FindAsync(id);

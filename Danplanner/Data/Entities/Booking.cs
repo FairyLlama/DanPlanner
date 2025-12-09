@@ -3,6 +3,8 @@ using Danplanner.Shared.Models;
 
 namespace Danplanner.Data.Entities
 
+
+// Klasse der repræsenterer en booking i systemet
 {
     public class Booking
     {
@@ -12,15 +14,15 @@ namespace Danplanner.Data.Entities
 
         public int UserId  { get; set; }
 
-        // FK til produkt (hytte eller græsplads)
+       
         public int ProductId { get; set; }
         public required Product Product { get; set; }
 
-        // FK til specifik hytte (valgfrit)
+
         public int? CottageId { get; set; }
         public Cottage? Cottage { get; set; }
 
-        // FK til specifik græsplads (valgfrit)
+     
         public int? GrassFieldId { get; set; }
         public GrassField? GrassField { get; set; }
 
@@ -29,9 +31,9 @@ namespace Danplanner.Data.Entities
 
         public string Status { get; set; } = "Aktiv";
 
-        public int NumberOfPeople { get; set; } // antal personer for booking
+        public int NumberOfPeople { get; set; } 
 
-        public decimal TotalPrice { get; set; } // samlet pris for hele bookingen
+        public decimal TotalPrice { get; set; } 
 
         public ICollection<BookingAddon> BookingAddons { get; set; } = new List<BookingAddon>();
 

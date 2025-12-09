@@ -4,6 +4,8 @@ namespace Danplanner.Services
 {
     public interface ICampingSiteDataService
     {
+
+        // CRUD operations for CampingSite entities
         Task<List<CampingSiteDto>> GetAllAsync();
         Task<CampingSiteDto?> GetByIdAsync(int id);
         Task<CampingSiteDto> CreateAsync(CampingSiteDto dto);

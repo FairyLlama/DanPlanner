@@ -1,5 +1,7 @@
 ﻿namespace Danplanner.Data.Entities
 {
+
+    // Klasse der repræsenterer en kvittering i systemet (obs: ikke brugt endnu)
     public class Receipt
     {
         public int Id { get; set; }

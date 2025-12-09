@@ -4,6 +4,7 @@ namespace Danplanner.Services
 {
     public interface IGrassFieldDataService
     {
+        // CRUD operationer for GrassField entiteten
         Task<List<GrassFieldDto>> GetAllAsync();
         Task<GrassFieldDto?> GetByIdAsync(int id);
 

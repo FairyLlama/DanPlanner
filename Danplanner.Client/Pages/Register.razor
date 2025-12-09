@@ -63,9 +63,11 @@
 </div>
 
 @code {
+    // Model til register-formularen
     private RegisterModel registerModel = new();
     private string? message;
 
+    // Håndterer register-logikken via. Authservice
     private async Task HandleRegister()
     {
         var ok = await Auth.RegisterOkAsync(
@@ -80,6 +82,7 @@
 
         message = ok ? "Registration successful" : "Registration failed";
     }
+    // Register-model med validering
 
     public class RegisterModel
     {

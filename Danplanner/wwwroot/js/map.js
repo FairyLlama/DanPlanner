@@ -1,4 +1,10 @@
 ﻿// wwwroot/js/map.js
+
+// OBS: Denne fil er genereret ved hjælp af AI
+
+/* Filen står for at vise et kort med en campingplads markeret på det
+- kortet hentes fra OpenStreetMap via Leaflet.js biblioteket 
+*/
 window.showCampingSite = function (site) {
     console.log("[map.js] showCampingSite CALLED", site);
 

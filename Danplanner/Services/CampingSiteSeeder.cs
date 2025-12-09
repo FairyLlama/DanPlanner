@@ -4,6 +4,8 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Danplanner.Services
 {
+
+    // blev brugt i testen til at fylde testdata i databasen
     public class CampingSiteSeeder(AppDbContext db)
     {
         private readonly AppDbContext _db = db;

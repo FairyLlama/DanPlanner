@@ -4,6 +4,9 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Danplanner.Controllers
 {
+
+    // API controller for managing GrassFields
+
     [ApiController]
     [Route("api/grassfields")]
     public class GrassFieldController : ControllerBase
@@ -23,7 +26,7 @@ namespace Danplanner.Controllers
             return Ok(grassFields);
         }
 
-        // GET: api/grassfields/5
+        // GET: api/grassfields
         [HttpGet("{id:int}")]
         public async Task<ActionResult<GrassFieldDto>> GetById(int id)
         {
@@ -42,7 +45,7 @@ namespace Danplanner.Controllers
             return CreatedAtAction(nameof(GetById), new { id = created.Id }, created);
         }
 
-        // PUT: api/grassfields/5
+        // PUT: api/grassfields
         [HttpPut("{id:int}")]
         public async Task<ActionResult<GrassFieldDto>> Update(int id, GrassFieldDto dto)
         {
@@ -57,7 +60,7 @@ namespace Danplanner.Controllers
             return Ok(updated);
         }
 
-        // DELETE: api/grassfields/5
+        // DELETE: api/grassfields
         [HttpDelete("{id:int}")]
         public async Task<IActionResult> Delete(int id)
         {

@@ -13,6 +13,7 @@ namespace Danplanner.Services
             _db = db;
         }
 
+        // Beregn den totale pris for en booking baseret på dens detaljer
         public async Task<decimal> CalculateTotalPriceAsync(BookingDto dto)
         {
             var days = (dto.EndDate - dto.StartDate).Days;

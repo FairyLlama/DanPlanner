@@ -6,16 +6,23 @@ using MySqlConnector;
 
 namespace Danplanner.Controllers
 {
+
+    // API controller for managing Bookings
     [ApiController]
     [Route("api/booking")]
+
+
+    
     public class BookingController : ControllerBase
     {
+        // Dependencies injected via constructor
         private readonly IBookingDataService _svc;
         private readonly IReceiptService _receiptService;
         private readonly IEmailService _emailService;
         private readonly ILogger<BookingController> _logger;
         private readonly IConfiguration _config;
 
+        // Constructor
         public BookingController(
             IBookingDataService svc,
             IReceiptService receiptService,
@@ -29,18 +36,18 @@ namespace Danplanner.Controllers
             _logger = logger;
             _config = config;
         }
-
+        // GET: api/booking
         [HttpGet]
         public async Task<ActionResult<List<BookingDto>>> GetAll() =>
             await _svc.GetAllAsync();
-
+        // GET: api/booking/{id}
         [HttpGet("{id:int}")]
         public async Task<ActionResult<BookingDto>> GetById(int id)
         {
             var b = await _svc.GetByIdAsync(id);
             return b is null ? NotFound() : b;
         }
-
+        // POST: api/booking
         [HttpPost]
         public async Task<ActionResult<BookingDto>> Create([FromBody] BookingDto dto)
         {
@@ -48,7 +55,7 @@ namespace Danplanner.Controllers
             return CreatedAtAction(nameof(GetById), new { id = created.Id }, created);
         }
 
-
+        // PUT: api/booking/{id}
         [HttpPut("{id:int}")]
         public async Task<ActionResult<BookingDto>> Update(int id, [FromBody] BookingDto dto)
         {
@@ -65,7 +72,7 @@ namespace Danplanner.Controllers
 
             return Ok(updated);
         }
-
+        // PUT: api/booking/{id}/confirm
         [HttpPut("{id}/confirm")]
         public async Task<IActionResult> Confirm(int id, [FromBody] int userId)
         {
@@ -79,7 +86,7 @@ namespace Danplanner.Controllers
 
             try
             {
-                // ⭐ 1) Tjek om vi allerede har User-data og Addon-data på booking
+                // Tjek om vi allerede har User-data og Addon-data på booking
                 bool needsDbUser = booking.User == null || string.IsNullOrWhiteSpace(booking.User.Email);
                 bool needsDbAddons = booking.BookingAddons != null &&
                                      booking.BookingAddons.Any(ba => ba.Addon == null);
@@ -91,7 +98,7 @@ namespace Danplanner.Controllers
                 string? country = booking.User?.Country;
                 string? language = booking.User?.Language;
 
-                // ⭐ 2) Hvis vi IKKE har user-info, så slå den op i DB (som før)
+                // vi sørger for at hente User-data hvis nødvendigt
                 if (needsDbUser)
                 {
                     using (var conn = new MySqlConnection(_config.GetConnectionString("DefaultConnection")))
@@ -114,8 +121,7 @@ namespace Danplanner.Controllers
                         }
                     }
                 }
-
-                // ⭐ 3) Sørg for at booking.User er sat (enten fra DB eller fra i forvejen)
+                // vi sørger for at have en UserDto på booking
                 booking.User ??= new UserDto
                 {
                     Id = userId,
@@ -127,7 +133,7 @@ namespace Danplanner.Controllers
                     Language = language ?? ""
                 };
 
-                // ⭐ 4) Hvis vi mangler Addon-data, slå dem op som før
+                // hvis vi mangler Addon-data, slå dem op som før
                 if (needsDbAddons && booking.BookingAddons != null)
                 {
                     foreach (var ba in booking.BookingAddons)
@@ -150,27 +156,28 @@ namespace Danplanner.Controllers
                         }
                     }
                 }
-
+                // Tjek at email findes
                 if (string.IsNullOrWhiteSpace(booking.User.Email))
                 {
                     _logger.LogWarning("Ingen emailadresse fundet for UserId {UserId}", userId);
                     return BadRequest("Brugerens email mangler. Kan ikke sende kvittering.");
                 }
 
-                // Dansk produktnavn + nummer
+                // Beskriv produktet på dansk
                 string produktTypeDa = booking.Product?.ProductType switch
                 {
                     ProductType.Cottage => "hytte",
                     ProductType.GrassField => "græsplads",
                     _ => "produkt"
                 };
-
+                // Lav produktbeskrivelse inkl. nummer
                 string produktBeskrivelse = produktTypeDa;
                 if (booking.CottageId != null && booking.Cottage != null)
                     produktBeskrivelse += $" (nummer: {booking.Cottage.Number})";
                 else if (booking.GrassFieldId != null && booking.GrassField != null)
                     produktBeskrivelse += $" (nummer: {booking.GrassField.Number})";
 
+                // E-mailens brødtekst
                 string mailBody = $@"
 Hej {booking.User?.Name}!
 
@@ -187,7 +194,7 @@ Vi glæder os til at byde dig velkommen hos Danplanner!
 Adresse: Udbyhøjvej 10, 4180 Sorø
 ";
 
-                // 🔑 Generér kvittering med beriget BookingDto
+                // Generér kvittering med booking-data 
                 var pdfBytes = _receiptService.GenerateReceipt(booking);
 
                 _logger.LogInformation("Sender mail til {Recipient}", booking.User.Email);
@@ -215,6 +222,7 @@ Adresse: Udbyhøjvej 10, 4180 Sorø
         }
 
 
+        // DELETE: api/booking/{id}
 
         [HttpDelete("{id:int}")]
 

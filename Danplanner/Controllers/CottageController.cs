@@ -4,6 +4,8 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Danplanner.Controllers
 {
+    // API controller for managing Cottages
+
     [ApiController]
     [Route("api/cottage")]
     public class CottageController : ControllerBase
@@ -33,7 +35,7 @@ namespace Danplanner.Controllers
             var created = await _svc.CreateAsync(dto);
             return CreatedAtAction(nameof(GetById), new { id = created.Id }, created);
         }
-
+        // PUT: api/cottages
         [HttpPut("{id:int}")]
         public async Task<ActionResult<CottageDto>> Update(int id, CottageDto dto)
         {
@@ -46,7 +48,7 @@ namespace Danplanner.Controllers
             return Ok(updated);
         }
 
-        // DELETE: api/cottages/5
+        // DELETE: api/cottages
 
         [HttpDelete("{id:int}")]
         public async Task<IActionResult> Delete(int id)

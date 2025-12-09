@@ -6,6 +6,8 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Danplanner.Services
 {
+
+    // bruges ikke i øjeblikket
     public class CampingSiteDataService(AppDbContext db) : ICampingSiteDataService
     {
         private readonly AppDbContext _db = db;

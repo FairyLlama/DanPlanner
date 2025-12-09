@@ -3,6 +3,9 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Danplanner.Controllers
 {
+
+    // blev kun brugt i starten til at teste email service
+
     [ApiController]
     [Route("api/testmail")]
     public class EmailController : ControllerBase

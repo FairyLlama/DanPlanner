@@ -334,12 +334,12 @@ else
 }
 
 @code {
-    // Data
+    // Vi opretter lister til hytter, græspladser og produkter
     private List<CottageDto>? Cottages;
     private List<GrassFieldDto>? GrassFields;
     private List<ProductDto> Products = new();
 
-    // Cottage state
+    // Vi opretter variabler til at håndtere tilstand for hytter
     private CottageDto CottageEdit = new();
     private int? CottageEditingId = null;
     private bool IsCreatingCottage = false;
@@ -349,7 +349,8 @@ else
     private int CottageDeleteTargetId;
     private string CottageDeleteTargetName = "";
 
-    // Grass state
+
+    // Vi opretter variabler til at håndtere tilstand for græspladser
     private GrassFieldDto GrassEdit = new();
     private int? GrassEditingId = null;
     private bool IsCreatingGrass = false;
@@ -358,13 +359,13 @@ else
     private bool ShowGrassDeleteConfirm = false;
     private int GrassDeleteTargetId;
     private string GrassDeleteTargetName = "";
-
+    // Initialisering
     protected override async Task OnInitializedAsync()
     {
         AuthService.OnUserChanged += () => InvokeAsync(StateHasChanged);
         await LoadAll();
     }
-
+    // Indlæs alle hytter, græspladser og produkter
     private async Task LoadAll()
     {
         try
@@ -380,7 +381,7 @@ else
         }
     }
 
-    // Cottage: create
+    // metode tiL at starte oprettelse af hytte
     private void ShowCreateCottage()
     {
         CottageFormError = "";
@@ -389,7 +390,7 @@ else
         CottageEdit = new CottageDto();
         CottagePriceString = "0.00";
     }
-
+    // metode til at annullere oprettelse af hytte
     private void CancelCottageCreate()
     {
         IsCreatingCottage = false;
@@ -397,7 +398,7 @@ else
         CottagePriceString = "";
         CottageFormError = "";
     }
-
+    // metode til at oprette en ny hytte
     private async Task CreateCottage()
     {
         CottageFormError = "";
@@ -428,7 +429,7 @@ else
         }
     }
 
-    // Cottage: edit
+    // Metode til at starte redigering af en hytte
     private void BeginCottageEdit(CottageDto h)
     {
         CottageFormError = "";
@@ -443,7 +444,7 @@ else
         };
         CottagePriceString = h.PricePerNight.ToString(System.Globalization.CultureInfo.InvariantCulture);
     }
-
+    // Metode til at annullere redigering af en hytte
     private void CancelCottageEdit()
     {
         CottageEditingId = null;
@@ -451,7 +452,7 @@ else
         CottagePriceString = "";
         CottageFormError = "";
     }
-
+    // Metode til at gemme redigering af en hytte
     private async Task SaveCottageEdit(int id)
     {
         CottageFormError = "";
@@ -475,7 +476,7 @@ else
         }
     }
 
-    // Cottage: delete
+    // Metode til at bekræfte sletning af en hytte
     private void ConfirmCottageDelete(int id, int number)
     {
         CottageDeleteTargetId = id;
@@ -483,12 +484,16 @@ else
         ShowCottageDeleteConfirm = true;
         CottageFormError = "";
     }
+
+    // Metode til at annullere sletning af en hytte
     private void CancelCottageDelete()
     {
         ShowCottageDeleteConfirm = false;
         CottageDeleteTargetId = 0;
         CottageDeleteTargetName = "";
     }
+
+    // Metode til at slette en hytte efter bekræftelse
     private async Task DeleteCottageConfirmed()
     {
         try
@@ -503,7 +508,7 @@ else
         }
     }
 
-    // Grass: create
+    // Metode til at starte oprettelse af græsplads
     private void ShowCreateGrass()
     {
         GrassFormError = "";
@@ -512,6 +517,7 @@ else
         GrassEdit = new GrassFieldDto();
         GrassPriceString = "0.00";
     }
+    // Metode til at annullere oprettelse af græsplads
     private void CancelGrassCreate()
     {
         IsCreatingGrass = false;
@@ -519,6 +525,7 @@ else
         GrassPriceString = "";
         GrassFormError = "";
     }
+    // Metode til at oprette en ny græsplads
     private async Task CreateGrass()
     {
         GrassFormError = "";
@@ -553,7 +560,7 @@ else
         }
     }
 
-    // Grass: edit
+    // Metode til at starte redigering af en græsplads
     private void BeginGrassEdit(GrassFieldDto g)
     {
         GrassFormError = "";
@@ -569,6 +576,7 @@ else
         };
         GrassPriceString = g.PricePerNight.ToString(System.Globalization.CultureInfo.InvariantCulture);
     }
+    // Metode til at annullere redigering af en græsplads
     private void CancelGrassEdit()
     {
         GrassEditingId = null;
@@ -576,6 +584,8 @@ else
         GrassPriceString = "";
         GrassFormError = "";
     }
+    // Metode til at gemme redigering af en græsplads
+
     private async Task SaveGrassEdit(int id)
     {
         GrassFormError = "";
@@ -603,7 +613,7 @@ else
         }
     }
 
-    // Grass: delete
+    // Metode til at bekræfte sletning af en græsplads
     private void ConfirmGrassDelete(int id, int number)
     {
         GrassDeleteTargetId = id;
@@ -611,12 +621,14 @@ else
         ShowGrassDeleteConfirm = true;
         GrassFormError = "";
     }
+    // Metode til at annullere sletning af en græsplads
     private void CancelGrassDelete()
     {
         ShowGrassDeleteConfirm = false;
         GrassDeleteTargetId = 0;
         GrassDeleteTargetName = "";
     }
+    //Metode til at slette en græsplads efter bekræftelse
     private async Task DeleteGrassConfirmed()
     {
         try

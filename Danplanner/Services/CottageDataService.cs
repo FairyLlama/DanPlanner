@@ -9,6 +9,7 @@ namespace Danplanner.Services
     {
         private readonly AppDbContext _db = db;
 
+        // Hent alle hytter
         public async Task<List<CottageDto>> GetAllAsync() =>
             await _db.Cottages
                 .Include(h => h.Product)
@@ -27,6 +28,8 @@ namespace Danplanner.Services
                 })
                 .ToListAsync();
 
+
+        // Hent hytte efter ID
         public async Task<CottageDto?> GetByIdAsync(int id)
         {
             var h = await _db.Cottages
@@ -48,8 +51,7 @@ namespace Danplanner.Services
             };
         }
 
-        // CREATE
-
+        // opret hytte
         public async Task<CottageDto> CreateAsync(CottageDto dto)
         {
             var entity = new Cottage
@@ -66,8 +68,7 @@ namespace Danplanner.Services
             return dto;
         }
 
-        // UPDATE
-
+        // opdater hytte
         public async Task<CottageDto> UpdateAsync(int id, CottageDto dto)
         {
             var entity = await _db.Cottages.FindAsync(id);
@@ -86,6 +87,7 @@ namespace Danplanner.Services
             return dto;
         }
 
+        // slet hytte
         public async Task DeleteAsync(int id)
         {
             var entity = await _db.Cottages.FindAsync(id);

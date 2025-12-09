@@ -82,13 +82,19 @@
 
 
 @code {
+
+    // Vi opretter en variabel til campingpladsen
+
     private CampingSiteDto? site;
 
+    // Når komponenten initialiseres, henter vi geokodede koordinater og viser kortet
     protected override async Task OnInitializedAsync()
     {
+        //  Hent geokodede koordinater for campingpladsens adresse
         var address = "Udbyhøjvej 10, 4180 Sorø";
         var result = await GeocodeAsync(address);
 
+        // Opret CampingSiteDto med resultat eller fallback-koordinater
         if (result.HasValue)
         {
             var (lat, lon) = result.Value;
@@ -115,7 +121,7 @@
             Console.WriteLine("[Init] Geocode TOM → bruger fallback coords");
         }
 
-        // 🔹 Kald JS direkte her
+        // Kald JS direkte her, så kortet vises ved indlæsning
         if (site != null)
         {
             try
@@ -136,7 +142,7 @@
             }
         }
     }
-
+    // Geokodningsfunktinkitionm hvor vi bruger openstreetmap til at hente lat/lon for en adresse
     private async Task<(double lat, double lon)?> GeocodeAsync(string address)
     {
         using var client = new HttpClient { Timeout = TimeSpan.FromSeconds(10) };
@@ -178,6 +184,7 @@
         return (lat, lon);
     }
 
+    // Kontaktformular model og håndtering
 
     private ContactFormModel formModel = new();
     private bool formSubmitted = false;

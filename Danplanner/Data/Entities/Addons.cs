@@ -1,5 +1,6 @@
 ﻿namespace Danplanner.Data.Entities
 {
+    // Klasse der repræsenterer et tillægsprodukt (addon) i systemet
     public class Addons
     {
          public int Id { get; set; }

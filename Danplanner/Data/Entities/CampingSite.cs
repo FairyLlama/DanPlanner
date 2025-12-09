@@ -1,5 +1,6 @@
 ﻿namespace Danplanner.Data.Entities
 {
+    // Klasse der repræsenterer en campingplads i systemet
     public class CampingSite
     {
         public int Id { get; set; }

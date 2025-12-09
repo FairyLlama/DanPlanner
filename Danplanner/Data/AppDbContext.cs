@@ -4,6 +4,8 @@ using Danplanner.Data.Entities;
 
 namespace Danplanner.Data
 {
+
+    // Database context klasse, med DbSet-egenskaber for hver entitetstype
     public class AppDbContext : DbContext
     {
         public AppDbContext(DbContextOptions<AppDbContext> options) : base(options) { }
@@ -19,12 +21,10 @@ namespace Danplanner.Data
         public DbSet<GrassField> GrassFields { get; set; }
 
         public DbSet<Addons> Addons { get; set; }
-
-        // Manglende tabeller:
         public DbSet<BookingAddon> BookingAddons { get; set; }
         public DbSet<Receipt> Receipts { get; set; }
 
-
+        // Konfiguration af model 
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
