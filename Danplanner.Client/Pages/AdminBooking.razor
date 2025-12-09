@@ -2,6 +2,7 @@
 @rendermode InteractiveServer
 @using Danplanner.Shared.Models
 @using Danplanner.Client.Services
+@using System.Security.Cryptography
 @inject ICottageService CottageService
 @inject IGrassFieldService GrassFieldService
 @inject IProductService ProductService
@@ -144,6 +145,19 @@ else
                         <ValidationSummary />
 
                         <div class="row g-3">
+                            <!-- VÆLG EKSISTERENDE KUNDE -->
+                            <div class="col-12">
+                                <label class="form-label small">Eksisterende kunde</label>
+                                <InputSelect class="form-select" TValue="int?" @bind-Value="SelectedUserId">
+                                    <option value="@((int?)null)">-- vælg eksisterende kunde eller indtast ny nedenfor --</option>
+                                    @foreach (var u in _users)
+                                    {
+                                        <option value="@u.Id">@u.Name (@u.Email)</option>
+                                    }
+                                </InputSelect>
+                            </div>
+
+                            <!-- FELTER TIL NY / REDIGERET KUNDE -->
                             <div class="col-md-6">
                                 <label class="form-label small">Navn</label>
                                 <InputText class="form-control" @bind-Value="_user.Name" />
@@ -168,10 +182,7 @@ else
                                 <label class="form-label small">Sprog</label>
                                 <InputText class="form-control" @bind-Value="_user.Language" />
                             </div>
-                            <div class="col-md-6">
-                                <label class="form-label small">Kodeord</label>
-                                <InputText class="form-control" @bind-Value="_user.Password" type="password" />
-                            </div>
+
 
                             <div class="col-12 d-flex justify-content-end mt-3">
                                 <button type="submit" class="btn btn-outline-primary">Gå videre — Opsummering</button>
@@ -216,6 +227,7 @@ else
                                     </ul>
                                 </li>
                             }
+                            <li><strong>Kunde:</strong> @_user.Name (@_user.Email)</li>
                             <li><strong>Totalpris:</strong> @TotalPrice.ToString("0.00") kr.</li>
                         </ul>
                     </div>
@@ -248,7 +260,7 @@ else
                     }
                     else if (_hasAttemptedCreate)
                     {
-                        <p class="text-success">Afvent venligst...</p>
+                        <p class="text-success">Afvent venligst mens vi bekræfter din booking...</p>
                     }
 
                     <div class="mt-3">
@@ -299,6 +311,7 @@ else
                                 </ul>
                             </li>
                         }
+                        <li class="mt-2"><strong>Kunde:</strong> @_user.Name (@_user.Email)</li>
                         <li class="mt-2"><strong>Total:</strong> @TotalPrice.ToString("0.00") kr.</li>
                     </ul>
                 </div>
@@ -308,9 +321,18 @@ else
 }
 
 @code {
+
+    // ---------------------------------------------
+    // Felt- og tilstands-variabler til wizard-flowet
+    // ---------------------------------------------
+
+    // Om vi har forsøgt at oprette/bekræfte en booking (bruges til besked i trin 4)
     private bool _hasAttemptedCreate = false;
+
+    // Holder styr på hvilket trin i wizzard-flowet vi er på (0–3)
     private int CurrentStep = 0;
 
+    // Booking-DTO der binder til formularen i trin 0
     private BookingDto _dto = new()
     {
         StartDate = DateTime.Today,
@@ -320,35 +342,100 @@ else
         BookingAddons = new List<BookingAddonDto>()
     };
 
+    // Booking som lige er blevet oprettet/bekræftet
     private BookingDto? _created;
+
+    // Data caches til produkter, hytter, græspladser og tilkøb (hentes i OnInitializedAsync)
     private List<ProductDto> _products = new();
     private List<CottageDto> _cottages = new();
     private List<GrassFieldDto> _grassFields = new();
     private List<AddonDto> _addons = new();
-    private List<BookingDto> _existingBookings = new(); // bruges til tilgængelighedstjek
 
+    // Allerede eksisterende bookinger bruges til at tjekke overlap i datoer
+    private List<BookingDto> _existingBookings = new();
+
+    // Alle brugere (kundenavn + email) hentet fra Auth-API'et (kun for Admin)
+    private List<UserDto> _users = new();
+
+    // Hvilke tilkøb (addons) der er valgt i UI'et
     private HashSet<int> _selectedAddonIds = new();
+
+    // Antal stk. per tilkøb (Id → quantity)
     private Dictionary<int, int> _addonQuantities = new();
+
+    // Det produkt (hytte/græsplads) der aktuelt er valgt
     private ProductDto? _selectedProduct;
 
+    // Fejlbeskeder til UI
     private string _error = "";
     private string _personError = "";
     private string _dateError = "";
+
+    // Kundeoplysninger (navn, email, adresse, osv.)
     private AuthRequest _user = new();
+
+    // Det Id som bruges ved ConfirmAsync (enten eksisterende bruger eller nyoprettet)
     private int _userId;
+
+    // Debug / status tekst der vises til Admin (f.eks. "Booking oprettet med ID...")
     private string _debugMessage = "";
+
+    // Beregnet totalpris for bookingen
     private decimal TotalPrice = 0;
 
+
+
+    // Id for den valgte eksisterende bruger (fra dropdown)
+    private int? _selectedUserId;
+
+    // Property til binding af valgt bruger i UI (kører prefill af felter)
+    private int? SelectedUserId
+    {
+        get => _selectedUserId;
+        set
+        {
+            _selectedUserId = value;
+
+            if (value.HasValue)
+            {
+                // Hvis admin vælger en eksisterende bruger,
+                // så pre-filler vi felterne med brugerens data
+                var u = _users.FirstOrDefault(x => x.Id == value.Value);
+                if (u != null)
+                {
+                    _user.Name = u.Name;
+                    _user.Email = u.Email;
+                    _user.Address = u.Address;
+                    _user.Phone = u.Phone;
+                    _user.Country = u.Country;
+                    _user.Language = u.Language;
+                }
+            }
+            else
+            {
+                // Hvis dropdown sættes tilbage til "ingen valgt", så starter vi forfra med ny kunde
+                _user = new AuthRequest();
+            }
+        }
+    }
+
+    // Kan man gå videre fra trin 0 til trin 1?
+    // Kræver valgt produkt + ingen person- eller dato-fejl
     private bool CanProceedFromStep0 =>
         _dto.ProductId > 0 &&
         string.IsNullOrEmpty(_personError) &&
         string.IsNullOrEmpty(_dateError);
 
+    // Kan man bekræfte bookingen (trin 2 → 3)?
     private bool CanConfirm =>
         string.IsNullOrEmpty(_personError) &&
         string.IsNullOrEmpty(_dateError);
 
-    // Wrapper properties der kalder UpdateTotal()/validering
+    // ---------------------------------------------
+    // Wrapper properties der reagerer på UI-ændringer
+    // ---------------------------------------------
+
+    // Når produkt ændres i UI → opdater DTO, nulstil hytte/plads, genberegn pris og valider
     private int ProductId
     {
         get => _dto.ProductId;
@@ -364,6 +451,7 @@ else
         }
     }
 
+    // Når hytte ændres → opdater DTO og re-valider/omregn
     private int? CottageIdProp
     {
         get => _dto.CottageId;
@@ -376,6 +464,7 @@ else
         }
     }
 
+    // Når græsplads ændres → opdater DTO og re-valider/omregn
     private int? GrassFieldIdProp
     {
         get => _dto.GrassFieldId;
@@ -388,6 +477,7 @@ else
         }
     }
 
+    // Når startdato ændres → gem, beregn pris og tjek overlap
     private DateTime StartDateProp
     {
         get => _dto.StartDate;
@@ -399,6 +489,7 @@ else
         }
     }
 
+    // Når slutdato ændres → gem, beregn pris og tjek overlap
     private DateTime EndDateProp
     {
         get => _dto.EndDate;
@@ -410,6 +501,7 @@ else
         }
     }
 
+    // Når antal personer ændres → opdater DTO, tjek max-kapacitet og genberegn pris
     private int NumberOfPeopleProp
     {
         get => _dto.NumberOfPeople;
@@ -421,6 +513,7 @@ else
         }
     }
 
+    // Kalder domain-service til max-kapacitet validering 
     private void ValidateNumberOfPeople()
     {
         _personError = BookingValidationService.ValidateNumberOfPeople(
@@ -431,6 +524,7 @@ else
         );
     }
 
+    // Kalder domain-service til overlappende datoer (tilgængelighed)
     private void ValidateAvailability()
     {
         _dateError = BookingValidationService.ValidateAvailability(
@@ -442,23 +536,35 @@ else
         StateHasChanged();
     }
 
+    // ---------------------------------------------
+    // Lifecycle: henter data ved første load
+    // ---------------------------------------------
     protected override async Task OnInitializedAsync()
     {
+        // Simpelt adgangstjek på UI-siden (sikkerhed håndteres stadig på server/API)
         if (AuthService.CurrentUser?.Role != "Admin")
             throw new InvalidOperationException("Bad request");
 
+        // Hent domænedata til dropdowns og validering
         _products = await ProductService.GetAllAsync();
         _cottages = await CottageService.GetAllAsync();
         _grassFields = await GrassFieldService.GetAllAsync();
         _addons = await AddonService.GetAllAsync();
         _existingBookings = await BookingService.GetAllAsync();
 
+        // Hent eksisterende brugere fra auth-service, så admin kan vælge dem i dropdown
+        _users = await AuthService.GetUsersAsync();
+
+        // Standard quantity = 1 for alle tilkøb
         foreach (var addon in _addons)
             _addonQuantities[addon.Id] = 1;
 
         UpdateTotal();
     }
 
+    // ---------------------------------------------
+    // Prisberegning (bruger dedikeret service)
+    // ---------------------------------------------
     private void UpdateTotal()
     {
         TotalPrice = BookingPriceService.CalculatePreviewTotal(
@@ -475,6 +581,9 @@ else
         StateHasChanged();
     }
 
+    // ---------------------------------------------
+    // Trin 0 → håndtering af booking-detaljer
+    // ---------------------------------------------
     private async Task HandleBooking()
     {
         _error = "";
@@ -515,6 +624,7 @@ else
             return;
         }
 
+        // Kopier valgte tilkøb over i DTO'en inden vi går videre i flowet
         _dto.BookingAddons = _selectedAddonIds
             .Select(id => new BookingAddonDto { AddonId = id, Quantity = GetQuantity(id) })
             .ToList();
@@ -524,6 +634,9 @@ else
         await ScrollToSection("step-user");
     }
 
+    // ---------------------------------------------
+    // Trin 1 → kundeoplysninger valideret
+    // ---------------------------------------------
     private async Task GoToSummary()
     {
         _error = "";
@@ -537,12 +650,16 @@ else
         await ScrollToSection("step-summary");
     }
 
+    // ---------------------------------------------
+    // Trin 2 → bekræft booking + opret/bruger kunde
+    // ---------------------------------------------
     private async Task ConfirmBooking()
     {
         _error = "";
         _debugMessage = "";
         _hasAttemptedCreate = true;
 
+        // Ekstra defensiv validering inden vi kalder serveren
         if (_dto.ProductId <= 0)
         {
             _error = "Produkt mangler.";
@@ -586,6 +703,7 @@ else
 
         try
         {
+            // 1) Opret booking på Danplanner-API'et
             var created = await BookingService.CreateAsync(_dto);
             if (created is null)
             {
@@ -596,21 +714,47 @@ else
             _created = created;
             _debugMessage = $"Booking oprettet med ID {_created.Id}.";
 
-            var userId = await AuthService.RegisterAsync(
-                _user.Password, _user.Name, _user.Email,
-                _user.Address, _user.Phone, _user.Country, _user.Language
-            );
+            // Tilføj til eksisterende bookinger så availability virker live i samme session
+            _existingBookings.Add(_created);
 
-            if (!(userId is int id) || id <= 0)
+            // 2) Find / opret bruger
+            int? effectiveUserId;
+
+            if (SelectedUserId.HasValue)
             {
-                _error = "Bruger kunne ikke oprettes. Booking er oprettet, men ikke bekræftet.";
-                CurrentStep = 2;
-                await ScrollToSection("step-summary");
-                return;
+                // Eksisterende kunde valgt → genbrug Id,
+                // så vi undgår duplikat-brugere og sparer tid
+                effectiveUserId = SelectedUserId.Value;
+            }
+            else
+            {
+                // Ny kunde → generér automatisk stærkt random password
+                var generatedPassword = GenerateRandomPassword(16);
+
+                var userId = await AuthService.RegisterAsync(
+                    generatedPassword,
+                    _user.Name,
+                    _user.Email,
+                    _user.Address,
+                    _user.Phone,
+                    _user.Country,
+                    _user.Language
+                );
+
+                if (!(userId is int id) || id <= 0)
+                {
+                    _error = "Bruger kunne ikke oprettes. Booking er oprettet, men ikke bekræftet.";
+                    CurrentStep = 2;
+                    await ScrollToSection("step-summary");
+                    return;
+                }
+
+                effectiveUserId = id;
             }
 
-            _userId = id;
+            _userId = effectiveUserId.Value;
 
+            // 3) Bekræft booking (BookingController sørger for email + PDF-kvittering)
             var success = await BookingService.ConfirmAsync(_created.Id, _userId);
             if (success)
             {
@@ -627,10 +771,21 @@ else
         }
         catch (Exception ex)
         {
+            // Generel fejl-håndtering (f.eks. netværk, database, mail-fejl)
             _error = $"Fejl ved bekræftelse: {ex.Message}";
         }
     }
 
+    // Genererer et stærkt tilfældigt password.
+    // Passwordet vises aldrig i UI – det er kun til fremtidsscenariet med login-funktionalitet.
+    private static string GenerateRandomPassword(int length = 16)
+    {
+        // Genererer tilfældige bytes og konverterer til Base64-streng
+        var bytes = RandomNumberGenerator.GetBytes(length);
+        return Convert.ToBase64String(bytes);
+    }
+
+    // Skifter trin og scroller til det relevante kort i UI
     private void GoBackToStep(int step)
     {
         _error = "";
@@ -645,6 +800,7 @@ else
         _ = ScrollToSection(id);
     }
 
+    // Simpel helper til at scrolle til et givent element ved id (bruges i wizard-flow)
     private async Task ScrollToSection(string id)
     {
         try
@@ -653,9 +809,11 @@ else
         }
         catch
         {
+            // Ignorer JS fejl – skal ikke vælte hele siden
         }
     }
 
+    // Nulstiller hele wizard-flowet, så admin kan oprette en helt ny booking
     private void StartNewBooking()
     {
         CurrentStep = 0;
@@ -667,17 +825,27 @@ else
             NumberOfPeople = 1,
             BookingAddons = new List<BookingAddonDto>()
         };
+
         _created = null;
+        _hasAttemptedCreate = false;   // Sørger for at "Afvent venligst" beskeden forsvinder
+        _error = "";                   // Ryd gamle fejlbeskeder
+        _debugMessage = "";            // Ryd debug-tekst
+
         _selectedAddonIds.Clear();
         _addonQuantities.Clear();
         foreach (var addon in _addons) _addonQuantities[addon.Id] = 1;
+
         _user = new AuthRequest();
         _personError = "";
         _dateError = "";
+        SelectedUserId = null;
+
         UpdateTotal();
         _ = ScrollToSection("step-booking");
     }
 
+
+    // Kaldes når en addon checkbox toggles
     private void ToggleAddon(int addonId, ChangeEventArgs e)
     {
         bool isChecked = e.Value?.ToString()?.ToLower() == "true" || e.Value?.ToString() == "on";
@@ -686,15 +854,18 @@ else
         UpdateTotal();
     }
 
+    // Henter aktuelt quantity for given addon (default = 1)
     private int GetQuantity(int id) =>
         _addonQuantities.TryGetValue(id, out var q) ? Math.Max(q, 1) : 1;
 
+    // Sætter quantity for given addon og recalculerer pris
     private void SetQuantity(int id, int q)
     {
         _addonQuantities[id] = Math.Max(q, 1);
         UpdateTotal();
     }
 
+    // Oversætter enum til dansk tekst til visning i dropdown
     private static string TranslateType(ProductType type) => type switch
     {
         ProductType.Cottage => "Hytte",
